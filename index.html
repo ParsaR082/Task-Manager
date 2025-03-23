@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="src/output.css">
+    <style>
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        :root {
+            --color-primary: #212a31;
+            --color-secondary: #2e3944; 
+            --color-accent: #124e66; 
+            --color-text-light: #d3d0d4; 
+            --color-text-dark: #212a31; 
+            --color-background: #748d92; 
+        }
+
+        body {
+            background-color: var(--color-background);
+            color: var(--color-text-dark);
+        }
+
+        .container {
+            background-color: var(--color-secondary);
+            color: var(--color-text-light);
+        }
+
+        .task-column {
+            background-color: var(--color-primary);
+            color: var(--color-text-light);
+            box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.1); 
+        }
+
+        .task-item {
+            background-color: var(--color-secondary);
+            color: var(--color-text-light);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .task-item:hover {
+            background-color: var(--color-accent);
+        }
+
+        .task-details {
+            background-color: var(--color-primary);
+            color: var(--color-text-light);
+            opacity: 0; 
+            transform: translateY(-10px); 
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .task-details.visible {
+            opacity: 1;
+            transform: translateY(0); 
+        }
+
+        .priority-low {
+            background-color: #4ade80; 
+        }
+
+        .priority-medium {
+            background-color: #fbbf24; 
+        }
+
+        .priority-high {
+            background-color: #f87171; 
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-item {
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-5xl mx-auto container p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold mb-4">Project Tasks</h2>
+
+        <!-- Search and Filter Section -->
+        <div class="mb-6 flex flex-col md:flex-row gap-4">
+            <input type="text" id="search" placeholder="Search tasks..." class="p-2 rounded-lg bg-gray-700 text-white flex-grow">
+            <select id="filter-priority" class="p-2 rounded-lg bg-gray-700 text-white">
+                <option value="">All Priorities</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+            <select id="filter-status" class="p-2 rounded-lg bg-gray-700 text-white">
+                <option value="">All Statuses</option>
+                <option value="To Do">To Do</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Closed">Closed</option>
+                <option value="Frozen">Frozen</option>
+            </select>
+        </div>
+
+        <!-- Task Details Section -->
+        <div id="task-details" class="task-details p-4 rounded-lg mb-4">
+            <h3 class="text-lg font-bold" id="task-details-title"></h3>
+            <p class="text-sm" id="task-details-name"></p>
+            <p class="text-sm" id="task-details-description"></p>
+            <p class="text-xs opacity-75" id="task-details-due-date"></p>
+            <p class="text-xs opacity-75" id="task-details-priority"></p>
+            <p class="text-xs opacity-75" id="task-details-status"></p>
+        </div>
+
+        <!-- Task Columns -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="task-column p-4 rounded-lg h-96 overflow-y-auto" data-status="To Do">
+                <h3 class="text-lg font-bold mb-2">To Do</h3>
+                <ul id="todo-list" class="space-y-2"></ul>
+            </div>
+            <div class="task-column p-4 rounded-lg h-96 overflow-y-auto" data-status="In Progress">
+                <h3 class="text-lg font-bold mb-2">In Progress</h3>
+                <ul id="inprogress-list" class="space-y-2"></ul>
+            </div>
+            <div class="task-column p-4 rounded-lg h-96 overflow-y-auto" data-status="Closed">
+                <h3 class="text-lg font-bold mb-2">Closed</h3>
+                <ul id="closed-list" class="space-y-2"></ul>
+            </div>
+            <div class="task-column p-4 rounded-lg h-96 overflow-y-auto" data-status="Frozen">
+                <h3 class="text-lg font-bold mb-2">Frozen</h3>
+                <ul id="frozen-list" class="space-y-2"></ul>
+            </div>
+        </div>
+
+        <!-- Add Task Button -->
+        <button id="add-task-btn" class="mt-4 p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300">
+            Add Task
+        </button>
+    </div>
+
+    <!-- Add/Edit Task Modal -->
+    <div id="task-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-gray-700 p-6 rounded-lg w-full max-w-md">
+            <h3 class="text-lg font-bold mb-4" id="modal-title">Add Task</h3>
+            <form id="task-form">
+                <input type="text" id="task-name" placeholder="Name" class="w-full p-2 mb-4 rounded-lg bg-gray-800 text-white">
+                <input type="text" id="task-title" placeholder="Title" class="w-full p-2 mb-4 rounded-lg bg-gray-800 text-white">
+                <textarea id="task-description" placeholder="Description" class="w-full p-2 mb-4 rounded-lg bg-gray-800 text-white"></textarea>
+                <input type="date" id="task-due-date" class="w-full p-2 mb-4 rounded-lg bg-gray-800 text-white">
+                <select id="task-priority" class="w-full p-2 mb-4 rounded-lg bg-gray-800 text-white">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+                <select id="task-status" class="w-full p-2 mb-4 rounded-lg bg-gray-800 text-white">
+                    <option value="To Do">To Do</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Closed">Closed</option>
+                    <option value="Frozen">Frozen</option>
+                </select>
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-grow p-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Save</button>
+                    <button type="button" id="close-modal" class="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script defer src="src/script.js"></script>
+</body>
+</html>
