@@ -80,7 +80,16 @@ function createTaskElement(task) {
     return li;
 }
 
-// Show task details with animation
+//close details button
+
+document.getElementById("close-task-details").addEventListener("click", () => {
+    const details = document.getElementById("task-details");
+    details.classList.remove("visible");
+    setTimeout(() => {
+        details.style.display = "none";
+    }, 300);
+});
+
 function showTaskDetails(task) {
     const details = document.getElementById("task-details");
 
@@ -92,11 +101,14 @@ function showTaskDetails(task) {
     document.getElementById("task-details-priority").textContent = `Priority: ${task.priority}`;
     document.getElementById("task-details-status").textContent = `Status: ${task.status}`;
 
+    details.style.display = "block"; // Make it visible before fading in
+
     // Add a delay before showing the details
     setTimeout(() => {
         details.classList.add("visible");
-    }, 100); // 100ms delay
+    }, 100);
 }
+
 
 // Drag and Drop functionality
 document.querySelectorAll(".task-column").forEach(column => {

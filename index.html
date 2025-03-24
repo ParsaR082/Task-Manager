@@ -63,6 +63,17 @@
             opacity: 1;
             transform: translateY(0); 
         }
+        #task-details {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+         }
+
+        #task-details.visible {
+            display: block;
+            opacity: 1;
+        }
+
 
         .priority-low {
             background-color: #4ade80; 
@@ -87,7 +98,7 @@
     </style>
 </head>
 <body class="p-6">
-    <div class="max-w-5xl mx-auto container p-6 rounded-lg shadow-lg">
+    <div class="max-w-11/12 mx-auto container p-6 rounded-lg shadow-lg mt-2">
         <h2 class="text-2xl font-bold mb-4">Project Tasks</h2>
 
         <!-- Search and Filter Section -->
@@ -109,14 +120,20 @@
         </div>
 
         <!-- Task Details Section -->
-        <div id="task-details" class="task-details p-4 rounded-lg mb-4">
-            <h3 class="text-lg font-bold" id="task-details-title"></h3>
-            <p class="text-sm" id="task-details-name"></p>
-            <p class="text-sm" id="task-details-description"></p>
-            <p class="text-xs opacity-75" id="task-details-due-date"></p>
-            <p class="text-xs opacity-75" id="task-details-priority"></p>
-            <p class="text-xs opacity-75" id="task-details-status"></p>
-        </div>
+<div id="task-details" class="task-details p-4 rounded-lg mb-4">
+    <div class="flex justify-between gap-4 items-center">
+        <h3 class="text-lg font-bold" id="task-details-title"></h3>
+        <button id="close-task-details" class="p-2 bg-transparent text-white rounded-lg hover:bg-red-600 transition duration-300">
+            Close
+        </button>
+    </div>
+    <p class="text-sm" id="task-details-name"></p>
+    <p class="text-sm" id="task-details-description"></p>
+    <p class="text-xs opacity-75" id="task-details-due-date"></p>
+    <p class="text-xs opacity-75" id="task-details-priority"></p>
+    <p class="text-xs opacity-75" id="task-details-status"></p>
+</div>
+
 
         <!-- Task Columns -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
