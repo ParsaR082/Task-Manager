@@ -2,141 +2,190 @@ import { Task, TaskStatus } from './types';
 
 export const hardcodedTasks: Task[] = [
   {
-    id: 'task-1',
-    title: 'Implement auth modal',
-    description: 'Connect Google OAuth provider for user authentication',
-    status: 'backlog',
-    deadline: '2024-07-15',
+    id: '1',
+    title: 'Implement authentication',
+    description: 'Add user login and registration functionality',
+    status: TaskStatus.TODO,
     priority: 'high',
-    createdAt: new Date('2024-07-01'),
-    assignee: 'John Doe',
-    tags: ['frontend', 'auth']
+    dueDate: '2024-03-20',
+    tags: ['auth', 'security']
   },
   {
-    id: 'task-2',
-    title: 'Setup MongoDB connection',
-    description: 'Configure database connection and schema design',
-    status: 'backlog',
-    deadline: '2024-07-20',
-    priority: 'high',
-    createdAt: new Date('2024-07-02'),
-    assignee: 'Jane Smith',
-    tags: ['backend', 'database']
-  },
-  {
-    id: 'task-3',
-    title: 'Design task card component',
-    description: 'Create reusable task card with drag-and-drop functionality',
-    status: 'in-progress',
-    deadline: '2024-07-10',
+    id: '2',
+    title: 'Design dashboard layout',
+    description: 'Create responsive layout for the main dashboard',
+    status: TaskStatus.IN_PROGRESS,
     priority: 'medium',
-    createdAt: new Date('2024-07-03'),
-    assignee: 'Mike Johnson',
-    tags: ['frontend', 'ui']
+    dueDate: '2024-03-15',
+    tags: ['ui', 'design']
   },
   {
-    id: 'task-4',
-    title: 'Implement user dashboard',
-    description: 'Build main dashboard with task overview and analytics',
-    status: 'in-progress',
-    deadline: '2024-07-25',
-    priority: 'high',
-    createdAt: new Date('2024-07-04'),
-    assignee: 'Sarah Wilson',
-    tags: ['frontend', 'dashboard']
-  },
-  {
-    id: 'task-5',
+    id: '3',
     title: 'Setup CI/CD pipeline',
-    description: 'Configure automated testing and deployment to Vercel',
-    status: 'backlog',
-    deadline: '2024-07-30',
-    priority: 'medium',
-    createdAt: new Date('2024-07-05'),
-    assignee: 'David Brown',
-    tags: ['devops', 'automation']
-  },
-  {
-    id: 'task-6',
-    title: 'Add notification system',
-    description: 'Implement real-time notifications for task updates',
-    status: 'backlog',
-    deadline: '2024-08-05',
-    priority: 'low',
-    createdAt: new Date('2024-07-06'),
-    assignee: 'Emily Davis',
-    tags: ['frontend', 'notifications']
-  },
-  {
-    id: 'task-7',
-    title: 'Create API documentation',
-    description: 'Document all API endpoints with examples',
-    status: 'done',
-    deadline: '2024-07-08',
-    priority: 'medium',
-    createdAt: new Date('2024-06-28'),
-    assignee: 'Chris Lee',
-    tags: ['documentation', 'api']
-  },
-  {
-    id: 'task-8',
-    title: 'Implement search functionality',
-    description: 'Add search and filter capabilities for tasks',
-    status: 'in-progress',
-    deadline: '2024-07-18',
-    priority: 'medium',
-    createdAt: new Date('2024-07-07'),
-    assignee: 'Alex Turner',
-    tags: ['frontend', 'search']
-  },
-  {
-    id: 'task-9',
-    title: 'Setup error monitoring',
-    description: 'Integrate error tracking and monitoring tools',
-    status: 'backlog',
-    deadline: '2024-08-01',
-    priority: 'low',
-    createdAt: new Date('2024-07-08'),
-    assignee: 'Lisa Garcia',
-    tags: ['monitoring', 'infrastructure']
-  },
-  {
-    id: 'task-10',
-    title: 'Mobile responsive design',
-    description: 'Ensure all components work perfectly on mobile devices',
-    status: 'done',
-    deadline: '2024-07-12',
+    description: 'Configure automated testing and deployment',
+    status: TaskStatus.DONE,
     priority: 'high',
-    createdAt: new Date('2024-06-25'),
-    assignee: 'Tom Wilson',
-    tags: ['frontend', 'mobile', 'responsive']
+    dueDate: '2024-03-10',
+    tags: ['devops']
   },
   {
-    id: 'task-11',
-    title: 'Performance optimization',
-    description: 'Optimize app performance and loading times',
-    status: 'done',
-    deadline: '2024-07-14',
+    id: '4',
+    title: 'Write API documentation',
+    description: 'Document all API endpoints and usage',
+    status: TaskStatus.TODO,
+    priority: 'low',
+    dueDate: '2024-03-25',
+    tags: ['docs']
+  },
+  {
+    id: '5',
+    title: 'Implement real-time notifications',
+    description: 'Add WebSocket support for live updates',
+    status: TaskStatus.IN_PROGRESS,
+    priority: 'high',
+    dueDate: '2024-03-18',
+    tags: ['feature', 'websocket']
+  },
+  {
+    id: '6',
+    title: 'Optimize database queries',
+    description: 'Improve performance of slow queries',
+    status: TaskStatus.TODO,
+    priority: 'high',
+    dueDate: '2024-03-12',
+    tags: ['performance', 'database']
+  },
+  {
+    id: '7',
+    title: 'Add data visualization charts',
+    description: 'Create interactive charts for analytics',
+    status: TaskStatus.DONE,
     priority: 'medium',
-    createdAt: new Date('2024-06-30'),
-    assignee: 'Rachel Green',
-    tags: ['performance', 'optimization']
+    dueDate: '2024-03-08',
+    tags: ['ui', 'analytics']
+  },
+  {
+    id: '8',
+    title: 'Implement dark mode',
+    description: 'Add system-wide dark mode support',
+    status: TaskStatus.DONE,
+    priority: 'low',
+    dueDate: '2024-03-05',
+    tags: ['ui', 'theme']
+  },
+  {
+    id: '9',
+    title: 'Setup error monitoring',
+    description: 'Integrate error tracking service',
+    status: TaskStatus.IN_PROGRESS,
+    priority: 'medium',
+    dueDate: '2024-03-22',
+    tags: ['monitoring', 'devops']
+  },
+  {
+    id: '10',
+    title: 'User onboarding flow',
+    description: 'Design and implement user onboarding',
+    status: TaskStatus.TODO,
+    priority: 'medium',
+    dueDate: '2024-03-28',
+    tags: ['ux', 'feature']
+  },
+  {
+    id: '11',
+    title: 'Mobile responsive design',
+    description: 'Ensure all pages work on mobile devices',
+    status: TaskStatus.IN_PROGRESS,
+    priority: 'high',
+    dueDate: '2024-03-14',
+    tags: ['ui', 'mobile']
+  },
+  {
+    id: '12',
+    title: 'Add search functionality',
+    description: 'Implement global search with filters',
+    status: TaskStatus.TODO,
+    priority: 'medium',
+    dueDate: '2024-03-30',
+    tags: ['feature', 'search']
+  },
+  {
+    id: '13',
+    title: 'Performance optimization',
+    description: 'Optimize app loading and rendering',
+    status: TaskStatus.DONE,
+    priority: 'high',
+    dueDate: '2024-03-07',
+    tags: ['performance']
+  },
+  {
+    id: '14',
+    title: 'Add file upload support',
+    description: 'Implement secure file upload system',
+    status: TaskStatus.TODO,
+    priority: 'low',
+    dueDate: '2024-04-02',
+    tags: ['feature', 'storage']
+  },
+  {
+    id: '15',
+    title: 'Email notification system',
+    description: 'Setup automated email notifications',
+    status: TaskStatus.IN_PROGRESS,
+    priority: 'medium',
+    dueDate: '2024-03-19',
+    tags: ['feature', 'email']
   }
 ];
+
+export function getTaskStats() {
+  const now = new Date();
+  
+  const stats = {
+    total: hardcodedTasks.length,
+    completed: 0,
+    inProgress: 0,
+    todo: 0,
+    overdue: 0
+  };
+
+  hardcodedTasks.forEach(task => {
+    // Count by status
+    switch (task.status) {
+      case TaskStatus.DONE:
+        stats.completed++;
+        break;
+      case TaskStatus.IN_PROGRESS:
+        stats.inProgress++;
+        break;
+      case TaskStatus.TODO:
+        stats.todo++;
+        break;
+    }
+
+    // Check for overdue tasks
+    const dueDate = new Date(task.dueDate);
+    if (dueDate < now && task.status !== TaskStatus.DONE) {
+      stats.overdue++;
+    }
+  });
+
+  return stats;
+}
 
 export function getTasksByStatus(status: TaskStatus): Task[] {
   return hardcodedTasks.filter(task => task.status === status);
 }
 
-export function getTaskStats() {
-  const total = hardcodedTasks.length;
-  const completed = hardcodedTasks.filter(task => task.status === 'done').length;
-  const inProgress = hardcodedTasks.filter(task => task.status === 'in-progress').length;
-  const overdue = hardcodedTasks.filter(task => {
-    const deadline = new Date(task.deadline);
-    const today = new Date();
-    return deadline < today && task.status !== 'done';
-  }).length;
+export function getTaskById(id: string): Task | undefined {
+  return hardcodedTasks.find(task => task.id === id);
+}
 
-  return { total, completed, inProgress, overdue };
+// Debug utilities
+export function debugLogTaskOperation(operation: string, taskId: string, details?: any) {
+  console.debug(`[Task Operation] ${operation}:`, {
+    taskId,
+    timestamp: new Date().toISOString(),
+    ...details
+  });
 } 
