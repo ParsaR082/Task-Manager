@@ -7,6 +7,7 @@ import { TaskColumn } from './task-column';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTasksByStatus } from '@/lib/data';
 import { PriorityFilter } from './priority-filter';
+import { StrictModeDroppable } from './strict-mode-droppable';
 
 interface TaskBoardProps {
   tasks: Task[];
@@ -66,10 +67,44 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
       const taskIndex = newTasks.findIndex(task => task.id === draggableId);
 
       if (taskIndex !== -1) {
-        newTasks[taskIndex] = {
-          ...newTasks[taskIndex],
+        // Create a new array with the task removed from its current position
+        const updatedTasks = [
+          ...newTasks.slice(0, taskIndex),
+          ...newTasks.slice(taskIndex + 1)
+        ];
+
+        // Get the task we're moving
+        const taskToMove = newTasks[taskIndex];
+
+        // Update the task's status
+        const updatedTask = {
+          ...taskToMove,
           status: destinationStatus
         };
+
+        // Find where to insert the task in its new column
+        const tasksInDestination = updatedTasks.filter(
+          task => task.status === destinationStatus
+        );
+
+        // Insert the task at the correct position
+        const insertIndex = updatedTasks.findIndex(
+          task => task.status === destinationStatus
+        );
+
+        if (insertIndex === -1) {
+          // If no tasks in destination, add to end
+          updatedTasks.push(updatedTask);
+        } else {
+          // Insert at the correct position
+          updatedTasks.splice(
+            insertIndex + destination.index,
+            0,
+            updatedTask
+          );
+        }
+
+        return updatedTasks;
       }
 
       return newTasks;

@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { Calendar, Tag, Clock } from 'lucide-react';
+import { Calendar, Tag, Clock, GripVertical } from 'lucide-react';
 import { Task, TaskStatus } from '@/lib/types';
-import { clsx } from 'clsx';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface TaskCardProps {
   task: Task;
@@ -12,44 +13,61 @@ interface TaskCardProps {
 }
 
 const priorityColors = {
-  low: 'bg-green-100 text-green-800 border-green-200',
-  medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  high: 'bg-orange-100 text-orange-800 border-orange-200'
-};
-
-const priorityColorsDark = {
-  low: 'dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
-  medium: 'dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
-  high: 'dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800'
+  low: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50',
+  medium: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800/50',
+  high: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800/50'
 };
 
 export function TaskCard({ task, index }: TaskCardProps) {
-  const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'done';
+  const isOverdue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE;
   
   return (
     <Draggable draggableId={task.id} index={index}>
       {(provided, snapshot) => (
-        <div
+        <motion.div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          className={clsx(
-            'group relative bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4 mb-3 transition-all duration-200 cursor-grab active:cursor-grabbing',
-            'hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600',
-            'hover-scale animate-fade-in',
-            snapshot.isDragging && 'shadow-lg rotate-2 scale-105',
-            isOverdue && 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/10'
+          initial={false}
+          animate={{
+            scale: snapshot.isDragging ? 1.05 : 1,
+            rotate: snapshot.isDragging ? 2 : 0,
+            boxShadow: snapshot.isDragging 
+              ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' 
+              : '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)'
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 400,
+            damping: 25
+          }}
+          className={cn(
+            'group relative bg-white dark:bg-slate-800 rounded-lg border p-4 mb-3',
+            'hover:border-slate-300 dark:hover:border-slate-600',
+            'transition-colors duration-200',
+            isOverdue 
+              ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/10' 
+              : 'border-slate-200 dark:border-slate-700'
           )}
         >
+          {/* Drag Handle */}
+          <div 
+            {...provided.dragHandleProps}
+            className={cn(
+              'absolute top-0 right-0 bottom-0 px-2 flex items-center justify-center',
+              'cursor-grab active:cursor-grabbing',
+              'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300',
+              'opacity-0 group-hover:opacity-100 transition-opacity duration-200'
+            )}
+          >
+            <GripVertical className="w-4 h-4" />
+          </div>
+
           {/* Priority Badge */}
           <div className="flex items-center justify-between mb-2">
-            <span
-              className={clsx(
-                'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border',
-                priorityColors[task.priority],
-                priorityColorsDark[task.priority]
-              )}
-            >
+            <span className={cn(
+              'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border',
+              priorityColors[task.priority]
+            )}>
               {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
             </span>
             {isOverdue && (
@@ -61,7 +79,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
           </div>
 
           {/* Task Title */}
-          <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-2 line-clamp-2">
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-2 line-clamp-2 pr-8">
             {task.title}
           </h3>
 
@@ -89,7 +107,9 @@ export function TaskCard({ task, index }: TaskCardProps) {
           <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
             <div className="flex items-center">
               <Calendar className="w-4 h-4 mr-1" />
-              <span className={clsx(isOverdue && 'text-red-600 dark:text-red-400 font-medium')}>
+              <span className={cn(
+                isOverdue && 'text-red-600 dark:text-red-400 font-medium'
+              )}>
                 {new Date(task.dueDate).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric'
@@ -97,17 +117,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
               </span>
             </div>
           </div>
-
-          {/* Drag Indicator */}
-          <div 
-            className={clsx(
-              'absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity',
-              'w-2 h-8 bg-slate-300 dark:bg-slate-600 rounded-full',
-              'before:content-[""] before:absolute before:top-1 before:left-0 before:w-2 before:h-1 before:bg-slate-400 dark:before:bg-slate-500 before:rounded-full',
-              'after:content-[""] after:absolute after:bottom-1 after:left-0 after:w-2 after:h-1 after:bg-slate-400 dark:after:bg-slate-500 after:rounded-full'
-            )}
-          />
-        </div>
+        </motion.div>
       )}
     </Draggable>
   );
