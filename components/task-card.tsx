@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { Calendar, Tag, Clock, GripVertical } from 'lucide-react';
+import { Calendar, Tag, Clock, GripVertical, ArrowRight } from 'lucide-react';
 import { Task, TaskStatus } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -53,14 +53,27 @@ export function TaskCard({ task, index }: TaskCardProps) {
           className={cn(
             'group relative bg-white dark:bg-slate-800 rounded-lg border p-4 mb-3',
             'hover:border-slate-300 dark:hover:border-slate-600',
-            'transition-colors duration-200',
+            'transition-all duration-200 cursor-pointer',
+            'hover:shadow-lg hover:translate-y-[-2px]',
             isOverdue 
               ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/10' 
               : 'border-slate-200 dark:border-slate-700',
             snapshot.isDragging && 'ring-2 ring-blue-400 dark:ring-blue-500'
           )}
           onClick={handleTaskClick}
+          whileHover={{
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          }}
         >
+          {/* View Details Indicator (only visible on hover) */}
+          <motion.div 
+            className="absolute right-8 top-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 bg-white/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200 text-xs px-2 py-1 rounded-full shadow-sm z-10"
+            initial={{ x: -10 }}
+            animate={{ x: 0 }}
+          >
+            View details <ArrowRight className="w-3 h-3" />
+          </motion.div>
+
           {/* Drag Handle with Animation */}
           <div {...provided.dragHandleProps} className="absolute top-0 right-0 bottom-0 px-2 flex items-center justify-center">
             <motion.div 
@@ -113,7 +126,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
 
           {/* Task Title with Animation */}
           <motion.h3 
-            className="font-semibold text-slate-900 dark:text-slate-100 mb-2 line-clamp-2 pr-8"
+            className="font-semibold text-slate-900 dark:text-slate-100 mb-2 line-clamp-2 pr-8 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200"
             layout
           >
             {task.title}
@@ -171,9 +184,9 @@ export function TaskCard({ task, index }: TaskCardProps) {
             </motion.div>
           </motion.div>
 
-          {/* Drag Indicator Animation */}
+          {/* Hover and Drag Indicator Animation */}
           <AnimatePresence>
-            {snapshot.isDragging && (
+            {snapshot.isDragging ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -184,6 +197,15 @@ export function TaskCard({ task, index }: TaskCardProps) {
                   damping: 20
                 }}
                 className="absolute inset-0 bg-blue-400/10 dark:bg-blue-500/20 rounded-lg pointer-events-none"
+              />
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0 }}
+                exit={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 bg-gradient-to-tr from-transparent to-blue-500/5 dark:to-blue-400/10 rounded-lg pointer-events-none"
               />
             )}
           </AnimatePresence>

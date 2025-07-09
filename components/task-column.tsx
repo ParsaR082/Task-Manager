@@ -3,7 +3,7 @@
 import React from 'react';
 import { Task, TaskStatus } from '@/lib/types';
 import { TaskCard } from './task-card';
-import { Plus, MoreVertical } from 'lucide-react';
+import { Plus, MoreVertical, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { StrictModeDroppable } from './strict-mode-droppable';
@@ -13,6 +13,7 @@ interface TaskColumnProps {
   status: TaskStatus;
   tasks: Task[];
   onAddTask?: () => void;
+  searchQuery?: string;
 }
 
 const statusColors: Record<TaskStatus, string> = {
@@ -27,7 +28,7 @@ const headerColors: Record<TaskStatus, string> = {
   [TaskStatus.DONE]: 'text-green-700 dark:text-green-300'
 };
 
-export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps) {
+export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }: TaskColumnProps) {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
@@ -174,35 +175,53 @@ export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps)
                   }}
                   className="flex flex-col items-center justify-center h-32 text-center"
                 >
-                  <motion.div 
-                    className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-3"
-                    whileHover={{ scale: 1.15, rotate: 180 }}
-                    animate={{
-                      boxShadow: [
-                        "0 0 0 0 rgba(99, 102, 241, 0)",
-                        "0 0 0 10px rgba(99, 102, 241, 0.1)",
-                        "0 0 0 0 rgba(99, 102, 241, 0)"
-                      ]
-                    }}
-                    transition={{ 
-                      rotate: { type: "spring", stiffness: 300, damping: 15 },
-                      boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-                    }}
-                  >
-                    <Plus className="w-6 h-6 text-slate-400 dark:text-slate-500" />
-                  </motion.div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-                    No tasks in {title.toLowerCase()}
-                  </p>
-                  {onAddTask && (
-                    <motion.button
-                      onClick={onAddTask}
-                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
+                  {searchQuery ? (
+                    <motion.div 
+                      className="flex flex-col items-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
                     >
-                      Add your first task
-                    </motion.button>
+                      <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-3">
+                        <Search className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+                      </div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        No matching tasks in {title.toLowerCase()}
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <>
+                      <motion.div 
+                        className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-3"
+                        whileHover={{ scale: 1.15, rotate: 180 }}
+                        animate={{
+                          boxShadow: [
+                            "0 0 0 0 rgba(99, 102, 241, 0)",
+                            "0 0 0 10px rgba(99, 102, 241, 0.1)",
+                            "0 0 0 0 rgba(99, 102, 241, 0)"
+                          ]
+                        }}
+                        transition={{ 
+                          rotate: { type: "spring", stiffness: 300, damping: 15 },
+                          boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+                        }}
+                      >
+                        <Plus className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+                      </motion.div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+                        No tasks in {title.toLowerCase()}
+                      </p>
+                      {onAddTask && (
+                        <motion.button
+                          onClick={onAddTask}
+                          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Add your first task
+                        </motion.button>
+                      )}
+                    </>
                   )}
                 </motion.div>
               )}
@@ -249,17 +268,7 @@ export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps)
                       ease: "easeInOut"
                     }}
                   >
-                    <motion.span
-                      animate={{ rotate: [0, 180, 360] }}
-                      transition={{ 
-                        repeat: Infinity, 
-                        duration: 3,
-                        ease: "linear"
-                      }}
-                    >
-                      ↓
-                    </motion.span>
-                    Drop task here
+                    Drop here
                   </motion.p>
                 </motion.div>
               )}

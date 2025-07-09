@@ -2,13 +2,12 @@
 
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Task } from '@/lib/types';
 import { hardcodedTasks } from '@/lib/data';
 import DatePicker from 'react-datepicker';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Search, ArrowRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
 // Import the DatePicker styles
@@ -17,6 +16,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 export default function CalendarPage() {
   const [tasks] = useState<Task[]>(hardcodedTasks);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [searchQuery, setSearchQuery] = useState<string>('');
   
   const router = useRouter();
 
@@ -36,12 +36,21 @@ export default function CalendarPage() {
     return grouped;
   }, [tasks]);
   
-  // Get tasks for selected date
+  // Get tasks for selected date, filtered by search query
   const tasksForSelectedDate = React.useMemo(() => {
     // Format the selected date as YYYY-MM-DD
     const dateKey = selectedDate.toISOString().split('T')[0];
-    return tasksByDate[dateKey] || [];
-  }, [selectedDate, tasksByDate]);
+    const tasksForDate = tasksByDate[dateKey] || [];
+    
+    if (!searchQuery.trim()) {
+      return tasksForDate;
+    }
+    
+    // Filter tasks by title (case-insensitive)
+    return tasksForDate.filter(task => 
+      task.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [selectedDate, tasksByDate, searchQuery]);
 
   // Custom day renderer to highlight dates with tasks
   const renderDayContents = (day: number, date?: Date) => {
@@ -157,7 +166,7 @@ export default function CalendarPage() {
             {/* Tasks for Selected Date */}
             <div className="p-6 lg:w-1/2 overflow-y-auto">
               <motion.h2 
-                className="text-xl font-semibold mb-6 flex items-center gap-2 pb-3 border-b border-slate-200 dark:border-slate-700"
+                className="text-xl font-semibold mb-4 flex items-center gap-2"
                 key={selectedDate.toISOString()}
                 initial={{ opacity: 0.8 }}
                 animate={{ opacity: 1 }}
@@ -171,6 +180,31 @@ export default function CalendarPage() {
                 })}
               </motion.h2>
               
+              {/* Search Bar */}
+              <div className="relative mb-6">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-10 py-2 border border-slate-200 dark:border-slate-700 rounded-lg 
+                            bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100
+                            placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                            transition-all duration-200"
+                  placeholder="Search tasks by title..."
+                />
+                {searchQuery && (
+                  <button 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    <X className="h-4 w-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" />
+                  </button>
+                )}
+              </div>
+
               <AnimatePresence mode="wait">
                 {tasksForSelectedDate.length > 0 ? (
                   <motion.div 
@@ -181,40 +215,50 @@ export default function CalendarPage() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {tasksForSelectedDate.map((task, index) => (
-                      <motion.div
-                        key={task.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ 
-                          type: 'spring', 
-                          stiffness: 300, 
-                          damping: 30,
-                          delay: index * 0.1
-                        }}
-                        className={cn(
-                          'p-4 rounded-lg border shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer',
-                          priorityColors[task.priority]
-                        )}
-                        whileHover={{ 
-                          scale: 1.02,
-                          boxShadow: "0 8px 16px rgba(0, 0, 0, 0.1)"
-                        }}
-                        onClick={() => router.push(`/tasks/${task.id}`)}
-                      >
-                        <h3 className="font-semibold text-lg mb-1">{task.title}</h3>
-                        <p className="text-sm mb-3 opacity-90">{task.description}</p>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium capitalize px-2 py-1 bg-white/30 dark:bg-black/20 rounded-full text-xs">
-                            Priority: {task.priority}
-                          </span>
-                          <span className="font-medium capitalize px-2 py-1 bg-white/30 dark:bg-black/20 rounded-full text-xs">
-                            Status: {task.status.replace('_', ' ').toLowerCase()}
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))}
+                    <AnimatePresence>
+                      {tasksForSelectedDate.map((task, index) => (
+                        <motion.div
+                          key={task.id}
+                          layout
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ 
+                            type: 'spring', 
+                            stiffness: 300, 
+                            damping: 30,
+                            delay: index * 0.05
+                          }}
+                          className={cn(
+                            'p-4 rounded-lg border shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer relative group',
+                            priorityColors[task.priority]
+                          )}
+                          whileHover={{ 
+                            scale: 1.02,
+                            boxShadow: "0 8px 16px rgba(0, 0, 0, 0.1)"
+                          }}
+                          onClick={() => router.push(`/tasks/${task.id}`)}
+                        >
+                          <motion.div 
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-slate-600 dark:text-slate-300 bg-white/70 dark:bg-slate-800/70 px-2 py-1 rounded-full text-xs"
+                            initial={{ x: -10 }}
+                            whileHover={{ x: 0 }}
+                          >
+                            View details <ArrowRight className="w-3 h-3" />
+                          </motion.div>
+                          <h3 className="font-semibold text-lg mb-1 pr-20">{task.title}</h3>
+                          <p className="text-sm mb-3 opacity-90">{task.description}</p>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium capitalize px-2 py-1 bg-white/30 dark:bg-black/20 rounded-full text-xs">
+                              Priority: {task.priority}
+                            </span>
+                            <span className="font-medium capitalize px-2 py-1 bg-white/30 dark:bg-black/20 rounded-full text-xs">
+                              Status: {task.status.replace('_', ' ').toLowerCase()}
+                            </span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </motion.div>
                 ) : (
                   <motion.div 
@@ -222,7 +266,6 @@ export default function CalendarPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
                     className="flex flex-col items-center justify-center h-60 text-center"
                   >
                     <motion.div 
@@ -242,7 +285,9 @@ export default function CalendarPage() {
                       <CalendarIcon className="w-8 h-8 text-slate-400" />
                     </motion.div>
                     <p className="text-slate-500 dark:text-slate-400 text-lg">
-                      No tasks scheduled for this date
+                      {searchQuery 
+                        ? `No tasks matching "${searchQuery}" for this date` 
+                        : "No tasks scheduled for this date"}
                     </p>
                     <motion.button 
                       className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
