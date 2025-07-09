@@ -6,6 +6,7 @@ import { Task } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar as CalendarIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 // Import the DatePicker styles
 import 'react-datepicker/dist/react-datepicker.css';
@@ -18,6 +19,7 @@ interface TaskCalendarProps {
 
 export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const router = useRouter();
   
   // Group tasks by date
   const tasksByDate = useMemo(() => {
@@ -163,9 +165,15 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                           className={cn(
-                            'p-3 rounded-lg border',
+                            'p-3 rounded-lg border cursor-pointer',
                             priorityColors[task.priority]
                           )}
+                          onClick={() => {
+                            onClose();
+                            router.push(`/tasks/${task.id}`);
+                          }}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                         >
                           <h4 className="font-medium mb-1">{task.title}</h4>
                           <p className="text-sm opacity-80 line-clamp-2">{task.description}</p>

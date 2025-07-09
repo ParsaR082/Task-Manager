@@ -9,6 +9,7 @@ import DatePicker from 'react-datepicker';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 // Import the DatePicker styles
 import 'react-datepicker/dist/react-datepicker.css';
@@ -17,6 +18,8 @@ export default function CalendarPage() {
   const [tasks] = useState<Task[]>(hardcodedTasks);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
+  const router = useRouter();
+
   // Group tasks by date
   const tasksByDate = React.useMemo(() => {
     const grouped: Record<string, Task[]> = {};
@@ -191,13 +194,14 @@ export default function CalendarPage() {
                           delay: index * 0.1
                         }}
                         className={cn(
-                          'p-4 rounded-lg border shadow-sm hover:shadow-md transition-all duration-300',
+                          'p-4 rounded-lg border shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer',
                           priorityColors[task.priority]
                         )}
                         whileHover={{ 
                           scale: 1.02,
                           boxShadow: "0 8px 16px rgba(0, 0, 0, 0.1)"
                         }}
+                        onClick={() => router.push(`/tasks/${task.id}`)}
                       >
                         <h3 className="font-semibold text-lg mb-1">{task.title}</h3>
                         <p className="text-sm mb-3 opacity-90">{task.description}</p>

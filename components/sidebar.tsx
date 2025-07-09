@@ -28,10 +28,8 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
 
   const navigationItems = [
     { icon: Home, label: 'Dashboard', href: '/', active: pathname === '/' },
-    { icon: FolderKanban, label: 'Task Board', href: '/board', active: pathname === '/board' },
     { icon: CheckSquare, label: 'My Tasks', href: '/tasks', active: pathname === '/tasks' },
     { icon: Calendar, label: 'Calendar', href: '/calendar', active: pathname === '/calendar' },
-    { icon: BarChart3, label: 'Analytics', href: '/analytics', active: pathname === '/analytics' },
     { icon: Users, label: 'Team', href: '/team', active: pathname === '/team' },
   ];
 

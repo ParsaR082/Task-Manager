@@ -6,6 +6,7 @@ import { Calendar, Tag, Clock, GripVertical } from 'lucide-react';
 import { Task, TaskStatus } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 interface TaskCardProps {
   task: Task;
@@ -20,6 +21,13 @@ const priorityColors = {
 
 export function TaskCard({ task, index }: TaskCardProps) {
   const isOverdue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE;
+  const router = useRouter();
+  
+  const handleTaskClick = (e: React.MouseEvent) => {
+    // Prevent triggering drag when clicking
+    e.stopPropagation();
+    router.push(`/tasks/${task.id}`);
+  };
   
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -51,6 +59,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
               : 'border-slate-200 dark:border-slate-700',
             snapshot.isDragging && 'ring-2 ring-blue-400 dark:ring-blue-500'
           )}
+          onClick={handleTaskClick}
         >
           {/* Drag Handle with Animation */}
           <div {...provided.dragHandleProps} className="absolute top-0 right-0 bottom-0 px-2 flex items-center justify-center">
