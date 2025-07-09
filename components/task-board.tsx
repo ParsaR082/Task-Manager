@@ -13,9 +13,9 @@ interface TaskBoardProps {
 }
 
 const columns = [
-  { id: 'backlog' as TaskStatus, title: 'Backlog' },
-  { id: 'in-progress' as TaskStatus, title: 'In Progress' },
-  { id: 'done' as TaskStatus, title: 'Done' }
+  { id: TaskStatus.TODO, title: 'To Do' },
+  { id: TaskStatus.IN_PROGRESS, title: 'In Progress' },
+  { id: TaskStatus.DONE, title: 'Done' }
 ];
 
 export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
@@ -24,9 +24,9 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
   // Group tasks by status
   const tasksByStatus = React.useMemo(() => {
     const groups: Record<TaskStatus, Task[]> = {
-      backlog: [],
-      'in-progress': [],
-      done: []
+      [TaskStatus.TODO]: [],
+      [TaskStatus.IN_PROGRESS]: [],
+      [TaskStatus.DONE]: []
     };
 
     localTasks.forEach(task => {
@@ -81,7 +81,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
   const handleAddTask = useCallback((status: TaskStatus) => {
     // For now, just log the action
     // In a real app, this would open a modal or form
-    console.log(`Add task to ${status}`);
+    console.debug(`[TaskBoard] Add task requested:`, { status });
   }, []);
 
   return (

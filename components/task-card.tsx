@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { Calendar, User, Tag, Clock } from 'lucide-react';
-import { Task } from '@/lib/types';
+import { Calendar, Tag, Clock } from 'lucide-react';
+import { Task, TaskStatus } from '@/lib/types';
 import { clsx } from 'clsx';
 
 interface TaskCardProps {
@@ -14,19 +14,17 @@ interface TaskCardProps {
 const priorityColors = {
   low: 'bg-green-100 text-green-800 border-green-200',
   medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  high: 'bg-orange-100 text-orange-800 border-orange-200',
-  urgent: 'bg-red-100 text-red-800 border-red-200'
+  high: 'bg-orange-100 text-orange-800 border-orange-200'
 };
 
 const priorityColorsDark = {
   low: 'dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
   medium: 'dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
-  high: 'dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800',
-  urgent: 'dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
+  high: 'dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800'
 };
 
 export function TaskCard({ task, index }: TaskCardProps) {
-  const isOverdue = new Date(task.deadline) < new Date() && task.status !== 'done';
+  const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'done';
   
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -92,21 +90,12 @@ export function TaskCard({ task, index }: TaskCardProps) {
             <div className="flex items-center">
               <Calendar className="w-4 h-4 mr-1" />
               <span className={clsx(isOverdue && 'text-red-600 dark:text-red-400 font-medium')}>
-                {new Date(task.deadline).toLocaleDateString('en-US', {
+                {new Date(task.dueDate).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric'
                 })}
               </span>
             </div>
-            
-            {task.assignee && (
-              <div className="flex items-center">
-                <User className="w-4 h-4 mr-1" />
-                <span className="truncate max-w-[100px]">
-                  {task.assignee.split(' ')[0]}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Drag Indicator */}

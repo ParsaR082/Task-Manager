@@ -15,16 +15,16 @@ interface TaskColumnProps {
   onAddTask?: () => void;
 }
 
-const statusColors = {
-  backlog: 'border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800/50',
-  'in-progress': 'border-blue-300 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/20',
-  done: 'border-green-300 bg-green-50 dark:border-green-600 dark:bg-green-900/20'
+const statusColors: Record<TaskStatus, string> = {
+  [TaskStatus.TODO]: 'border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800/50',
+  [TaskStatus.IN_PROGRESS]: 'border-blue-300 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/20',
+  [TaskStatus.DONE]: 'border-green-300 bg-green-50 dark:border-green-600 dark:bg-green-900/20'
 };
 
-const headerColors = {
-  backlog: 'text-slate-700 dark:text-slate-300',
-  'in-progress': 'text-blue-700 dark:text-blue-300',
-  done: 'text-green-700 dark:text-green-300'
+const headerColors: Record<TaskStatus, string> = {
+  [TaskStatus.TODO]: 'text-slate-700 dark:text-slate-300',
+  [TaskStatus.IN_PROGRESS]: 'text-blue-700 dark:text-blue-300',
+  [TaskStatus.DONE]: 'text-green-700 dark:text-green-300'
 };
 
 export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps) {
