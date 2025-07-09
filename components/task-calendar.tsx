@@ -107,7 +107,7 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
                 <div className="calendar-wrapper">
                   <DatePicker
                     selected={selectedDate}
-                    onChange={(date: Date) => setSelectedDate(date)}
+                    onChange={(date: Date | null) => date && setSelectedDate(date)}
                     inline
                     renderDayContents={renderDayContents}
                     calendarClassName="w-full"
