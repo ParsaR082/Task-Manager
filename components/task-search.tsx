@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface TaskSearchProps {
-  onSearch: (query: string, tags: string[]) => void;
+  onSearch?: (query: string, tags: string[]) => void;
   availableTags?: string[];
 }
 
@@ -14,7 +14,9 @@ export function TaskSearch({ onSearch, availableTags = [] }: TaskSearchProps) {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleSearch = useCallback(() => {
-    onSearch(query, selectedTags);
+    if (onSearch) {
+      onSearch(query, selectedTags);
+    }
   }, [query, selectedTags, onSearch]);
 
   const toggleTag = useCallback((tag: string) => {
@@ -24,7 +26,9 @@ export function TaskSearch({ onSearch, availableTags = [] }: TaskSearchProps) {
         ? prev.filter(t => t !== tag)
         : [...prev, tag];
       
-      onSearch(query, newTags);
+      if (onSearch) {
+        onSearch(query, newTags);
+      }
       return newTags;
     });
   }, [query, onSearch]);
@@ -32,7 +36,9 @@ export function TaskSearch({ onSearch, availableTags = [] }: TaskSearchProps) {
   const removeTag = useCallback((tagToRemove: string) => {
     setSelectedTags(prev => {
       const newTags = prev.filter(tag => tag !== tagToRemove);
-      onSearch(query, newTags);
+      if (onSearch) {
+        onSearch(query, newTags);
+      }
       return newTags;
     });
   }, [query, onSearch]);
