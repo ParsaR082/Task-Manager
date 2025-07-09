@@ -7,7 +7,8 @@ import { TaskColumn } from './task-column';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTasksByStatus } from '@/lib/data';
 import { PriorityFilter } from './priority-filter';
-import { StrictModeDroppable } from './strict-mode-droppable';
+import { Calendar } from 'lucide-react';
+import { TaskCalendar } from './task-calendar';
 
 interface TaskBoardProps {
   tasks: Task[];
@@ -23,6 +24,7 @@ const columns = [
 export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
   const [selectedPriority, setSelectedPriority] = useState<'low' | 'medium' | 'high' | null>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
   // Filter and group tasks by status
   const tasksByStatus = React.useMemo(() => {
@@ -145,6 +147,17 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
         </div>
 
         <div className="flex items-center gap-6">
+          {/* Calendar Button */}
+          <motion.button
+            onClick={() => setIsCalendarOpen(true)}
+            className="p-2 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/40"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            title="View Calendar"
+          >
+            <Calendar className="w-5 h-5" />
+          </motion.button>
+          
           <PriorityFilter 
             selectedPriority={selectedPriority}
             onPriorityChange={setSelectedPriority}
@@ -202,6 +215,13 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
           </div>
         </div>
       </DragDropContext>
+
+      {/* Calendar Modal */}
+      <TaskCalendar 
+        tasks={localTasks}
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+      />
     </motion.div>
   );
 } 

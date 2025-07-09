@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   Home, 
   CheckSquare, 
@@ -20,24 +22,25 @@ interface SidebarProps {
   onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-const navigationItems = [
-  { icon: Home, label: 'Dashboard', href: '/', active: true },
-  { icon: FolderKanban, label: 'Task Board', href: '/board', active: false },
-  { icon: CheckSquare, label: 'My Tasks', href: '/tasks', active: false },
-  { icon: Calendar, label: 'Calendar', href: '/calendar', active: false },
-  { icon: BarChart3, label: 'Analytics', href: '/analytics', active: false },
-  { icon: Users, label: 'Team', href: '/team', active: false },
-];
-
-const projectItems = [
-  { name: 'Website Redesign', color: 'bg-blue-500', tasksCount: 12 },
-  { name: 'Mobile App', color: 'bg-green-500', tasksCount: 8 },
-  { name: 'Marketing Campaign', color: 'bg-purple-500', tasksCount: 5 },
-  { name: 'API Development', color: 'bg-orange-500', tasksCount: 15 },
-];
-
 export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) {
   const [localCollapsed, setLocalCollapsed] = useState(collapsed);
+  const pathname = usePathname();
+
+  const navigationItems = [
+    { icon: Home, label: 'Dashboard', href: '/', active: pathname === '/' },
+    { icon: FolderKanban, label: 'Task Board', href: '/board', active: pathname === '/board' },
+    { icon: CheckSquare, label: 'My Tasks', href: '/tasks', active: pathname === '/tasks' },
+    { icon: Calendar, label: 'Calendar', href: '/calendar', active: pathname === '/calendar' },
+    { icon: BarChart3, label: 'Analytics', href: '/analytics', active: pathname === '/analytics' },
+    { icon: Users, label: 'Team', href: '/team', active: pathname === '/team' },
+  ];
+
+  const projectItems = [
+    { name: 'Website Redesign', color: 'bg-blue-500', tasksCount: 12 },
+    { name: 'Mobile App', color: 'bg-green-500', tasksCount: 8 },
+    { name: 'Marketing Campaign', color: 'bg-purple-500', tasksCount: 5 },
+    { name: 'API Development', color: 'bg-orange-500', tasksCount: 15 },
+  ];
 
   const handleToggleCollapse = () => {
     const newCollapsed = !localCollapsed;
@@ -85,7 +88,7 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
       <nav className="flex-1 px-3 py-4">
         <div className="space-y-1">
           {navigationItems.map((item, index) => (
-            <a
+            <Link
               key={index}
               href={item.href}
               className={clsx(
@@ -99,7 +102,7 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
               {!localCollapsed && <span>{item.label}</span>}
-            </a>
+            </Link>
           ))}
         </div>
 
@@ -155,7 +158,7 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
 
       {/* Settings */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-700">
-        <a
+        <Link
           href="/settings"
           className={clsx(
             'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors',
@@ -165,7 +168,7 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
         >
           <Settings className="w-5 h-5 flex-shrink-0" />
           {!localCollapsed && <span>Settings</span>}
-        </a>
+        </Link>
       </div>
 
       {/* Mobile Overlay */}

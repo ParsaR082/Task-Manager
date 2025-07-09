@@ -1,140 +1,120 @@
 import { Task, TaskStatus } from './types';
 
+// Generate dates close to today
+function getNearbyDate(daysOffset: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + daysOffset);
+  return date.toISOString().split('T')[0];
+}
+
 export const hardcodedTasks: Task[] = [
   {
     id: '1',
-    title: 'Implement authentication',
-    description: 'Add user login and registration functionality',
+    title: 'Complete Project Proposal',
+    description: 'Finalize the project proposal document with all requirements and submit for review.',
     status: TaskStatus.TODO,
     priority: 'high',
-    dueDate: '2024-03-20',
-    tags: ['auth', 'security']
+    dueDate: getNearbyDate(2),
+    tags: ['Documentation', 'Planning']
   },
   {
     id: '2',
-    title: 'Design dashboard layout',
-    description: 'Create responsive layout for the main dashboard',
+    title: 'Review Design Mockups',
+    description: 'Review the design mockups for the new landing page and provide feedback.',
     status: TaskStatus.IN_PROGRESS,
     priority: 'medium',
-    dueDate: '2024-03-15',
-    tags: ['ui', 'design']
+    dueDate: getNearbyDate(1),
+    tags: ['Design', 'Feedback']
   },
   {
     id: '3',
-    title: 'Setup CI/CD pipeline',
-    description: 'Configure automated testing and deployment',
+    title: 'Setup Development Environment',
+    description: 'Install and configure all necessary tools for the development environment.',
     status: TaskStatus.DONE,
-    priority: 'high',
-    dueDate: '2024-03-10',
-    tags: ['devops']
+    priority: 'low',
+    dueDate: getNearbyDate(-1),
+    tags: ['Setup', 'Development']
   },
   {
     id: '4',
-    title: 'Write API documentation',
-    description: 'Document all API endpoints and usage',
+    title: 'Client Meeting Preparation',
+    description: 'Prepare slides and talking points for the upcoming client meeting.',
     status: TaskStatus.TODO,
-    priority: 'low',
-    dueDate: '2024-03-25',
-    tags: ['docs']
+    priority: 'high',
+    dueDate: getNearbyDate(0), // Today
+    tags: ['Meeting', 'Client']
   },
   {
     id: '5',
-    title: 'Implement real-time notifications',
-    description: 'Add WebSocket support for live updates',
+    title: 'Database Schema Design',
+    description: 'Design the database schema for the new application based on requirements.',
     status: TaskStatus.IN_PROGRESS,
-    priority: 'high',
-    dueDate: '2024-03-18',
-    tags: ['feature', 'websocket']
+    priority: 'medium',
+    dueDate: getNearbyDate(3),
+    tags: ['Database', 'Architecture']
   },
   {
     id: '6',
-    title: 'Optimize database queries',
-    description: 'Improve performance of slow queries',
+    title: 'API Documentation',
+    description: 'Document all API endpoints, request parameters, and response formats.',
     status: TaskStatus.TODO,
-    priority: 'high',
-    dueDate: '2024-03-12',
-    tags: ['performance', 'database']
+    priority: 'medium',
+    dueDate: getNearbyDate(4),
+    tags: ['Documentation', 'API']
   },
   {
     id: '7',
-    title: 'Add data visualization charts',
-    description: 'Create interactive charts for analytics',
-    status: TaskStatus.DONE,
-    priority: 'medium',
-    dueDate: '2024-03-08',
-    tags: ['ui', 'analytics']
+    title: 'Code Review',
+    description: 'Review pull requests and provide feedback on code quality and standards.',
+    status: TaskStatus.IN_PROGRESS,
+    priority: 'high',
+    dueDate: getNearbyDate(0), // Today
+    tags: ['Code Review', 'Quality']
   },
   {
     id: '8',
-    title: 'Implement dark mode',
-    description: 'Add system-wide dark mode support',
-    status: TaskStatus.DONE,
-    priority: 'low',
-    dueDate: '2024-03-05',
-    tags: ['ui', 'theme']
+    title: 'Unit Test Implementation',
+    description: 'Write unit tests for all core functionality to ensure code quality.',
+    status: TaskStatus.TODO,
+    priority: 'medium',
+    dueDate: getNearbyDate(5),
+    tags: ['Testing', 'Quality']
   },
   {
     id: '9',
-    title: 'Setup error monitoring',
-    description: 'Integrate error tracking service',
-    status: TaskStatus.IN_PROGRESS,
-    priority: 'medium',
-    dueDate: '2024-03-22',
-    tags: ['monitoring', 'devops']
+    title: 'Performance Optimization',
+    description: 'Identify and fix performance bottlenecks in the application.',
+    status: TaskStatus.DONE,
+    priority: 'low',
+    dueDate: getNearbyDate(-2),
+    tags: ['Performance', 'Optimization']
   },
   {
     id: '10',
-    title: 'User onboarding flow',
-    description: 'Design and implement user onboarding',
+    title: 'Deployment Planning',
+    description: 'Create a deployment plan for the next release including rollback strategy.',
     status: TaskStatus.TODO,
-    priority: 'medium',
-    dueDate: '2024-03-28',
-    tags: ['ux', 'feature']
+    priority: 'high',
+    dueDate: getNearbyDate(7),
+    tags: ['Deployment', 'Planning']
   },
   {
     id: '11',
-    title: 'Mobile responsive design',
-    description: 'Ensure all pages work on mobile devices',
+    title: 'User Documentation',
+    description: 'Create user guides and documentation for end users.',
     status: TaskStatus.IN_PROGRESS,
-    priority: 'high',
-    dueDate: '2024-03-14',
-    tags: ['ui', 'mobile']
+    priority: 'low',
+    dueDate: getNearbyDate(6),
+    tags: ['Documentation', 'User Guide']
   },
   {
     id: '12',
-    title: 'Add search functionality',
-    description: 'Implement global search with filters',
-    status: TaskStatus.TODO,
-    priority: 'medium',
-    dueDate: '2024-03-30',
-    tags: ['feature', 'search']
-  },
-  {
-    id: '13',
-    title: 'Performance optimization',
-    description: 'Optimize app loading and rendering',
+    title: 'Security Audit',
+    description: 'Conduct a security audit of the application and address any vulnerabilities.',
     status: TaskStatus.DONE,
     priority: 'high',
-    dueDate: '2024-03-07',
-    tags: ['performance']
-  },
-  {
-    id: '14',
-    title: 'Add file upload support',
-    description: 'Implement secure file upload system',
-    status: TaskStatus.TODO,
-    priority: 'low',
-    dueDate: '2024-04-02',
-    tags: ['feature', 'storage']
-  },
-  {
-    id: '15',
-    title: 'Email notification system',
-    description: 'Setup automated email notifications',
-    status: TaskStatus.IN_PROGRESS,
-    priority: 'medium',
-    dueDate: '2024-03-19',
-    tags: ['feature', 'email']
+    dueDate: getNearbyDate(-3),
+    tags: ['Security', 'Audit']
   }
 ];
 
