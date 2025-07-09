@@ -88,7 +88,7 @@ export function TabsContent({ value, children }: TabsContentProps) {
   const isSelected = selectedValue === value;
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {isSelected && (
         <motion.div
           key={value}

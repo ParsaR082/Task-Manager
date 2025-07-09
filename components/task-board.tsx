@@ -149,7 +149,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
             selectedPriority={selectedPriority}
             onPriorityChange={setSelectedPriority}
           />
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             <motion.div 
               key={selectedPriority ?? 'all'}
               initial={{ opacity: 0, y: -10 }}
@@ -170,7 +170,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex-1 flex overflow-hidden">
           <div className="flex flex-1 gap-6 p-6 overflow-x-auto">
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               {columns.map((column, index) => (
                 <motion.div 
                   key={column.id} 
