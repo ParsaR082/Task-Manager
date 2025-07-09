@@ -88,13 +88,13 @@ export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps)
             {...provided.droppableProps}
             animate={{
               backgroundColor: snapshot.isDraggingOver 
-                ? 'rgba(59, 130, 246, 0.1)' 
+                ? 'rgba(59, 130, 246, 0.15)' 
                 : 'transparent',
-              scale: snapshot.isDraggingOver ? 1.02 : 1,
+              scale: snapshot.isDraggingOver ? 1.03 : 1,
               transition: { 
                 type: "spring",
-                stiffness: 300,
-                damping: 30
+                stiffness: 350,
+                damping: 25
               }
             }}
             className={cn(
@@ -113,22 +113,22 @@ export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps)
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ 
-                    opacity: [0.5, 0.3, 0.5],
+                    opacity: [0.6, 0.4, 0.6],
                     scale: 1,
                   }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{
                     opacity: {
                       repeat: Infinity,
-                      duration: 2
+                      duration: 1.5
                     },
                     scale: {
                       type: "spring",
-                      stiffness: 300,
+                      stiffness: 400,
                       damping: 20
                     }
                   }}
-                  className="absolute inset-0 bg-blue-400/10 dark:bg-blue-500/10 rounded-lg pointer-events-none"
+                  className="absolute inset-0 bg-blue-400/15 dark:bg-blue-500/15 rounded-lg pointer-events-none"
                 />
               )}
             </AnimatePresence>
@@ -142,14 +142,15 @@ export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps)
                 {tasks.map((task, index) => (
                   <motion.div
                     key={task.id}
-                    initial={{ opacity: 0, y: -10 }}
+                    initial={{ opacity: 0, y: -15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
+                    exit={{ opacity: 0, y: 15 }}
                     transition={{
                       type: "spring",
                       stiffness: 500,
-                      damping: 30,
-                      mass: 1
+                      damping: 25,
+                      mass: 0.8,
+                      delay: index * 0.05
                     }}
                   >
                     <TaskCard task={task} index={index} />
@@ -168,15 +169,25 @@ export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps)
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ 
                     type: "spring",
-                    stiffness: 300,
+                    stiffness: 350,
                     damping: 25
                   }}
                   className="flex flex-col items-center justify-center h-32 text-center"
                 >
                   <motion.div 
                     className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-3"
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    whileHover={{ scale: 1.15, rotate: 180 }}
+                    animate={{
+                      boxShadow: [
+                        "0 0 0 0 rgba(99, 102, 241, 0)",
+                        "0 0 0 10px rgba(99, 102, 241, 0.1)",
+                        "0 0 0 0 rgba(99, 102, 241, 0)"
+                      ]
+                    }}
+                    transition={{ 
+                      rotate: { type: "spring", stiffness: 300, damping: 15 },
+                      boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+                    }}
                   >
                     <Plus className="w-6 h-6 text-slate-400 dark:text-slate-500" />
                   </motion.div>
@@ -187,7 +198,7 @@ export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps)
                     <motion.button
                       onClick={onAddTask}
                       className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       Add your first task
@@ -201,21 +212,22 @@ export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps)
             <AnimatePresence>
               {snapshot.isDraggingOver && tasks.length === 0 && (
                 <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ 
                     opacity: 1, 
                     scale: 1,
-                    y: [0, -5, 0],
+                    y: [0, -8, 0],
                   }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
                   transition={{
                     y: {
                       repeat: Infinity,
-                      duration: 2
+                      duration: 1.8,
+                      ease: "easeInOut"
                     },
                     scale: {
                       type: "spring",
-                      stiffness: 300,
+                      stiffness: 400,
                       damping: 20
                     }
                   }}
@@ -223,19 +235,30 @@ export function TaskColumn({ title, status, tasks, onAddTask }: TaskColumnProps)
                     'absolute inset-4 border-2 border-dashed rounded-lg',
                     'flex items-center justify-center',
                     'border-blue-300 dark:border-blue-600',
-                    'bg-blue-50 dark:bg-blue-900/20'
+                    'bg-blue-50/80 dark:bg-blue-900/30'
                   )}
                 >
                   <motion.p 
-                    className="text-blue-600 dark:text-blue-400 font-medium"
+                    className="text-blue-600 dark:text-blue-400 font-medium flex items-center gap-2"
                     animate={{
-                      scale: [1, 1.05, 1],
+                      scale: [1, 1.08, 1],
                     }}
                     transition={{
                       repeat: Infinity,
-                      duration: 2
+                      duration: 1.5,
+                      ease: "easeInOut"
                     }}
                   >
+                    <motion.span
+                      animate={{ rotate: [0, 180, 360] }}
+                      transition={{ 
+                        repeat: Infinity, 
+                        duration: 3,
+                        ease: "linear"
+                      }}
+                    >
+                      ↓
+                    </motion.span>
                     Drop task here
                   </motion.p>
                 </motion.div>

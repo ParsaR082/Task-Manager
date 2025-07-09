@@ -132,7 +132,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
       <motion.div 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
         className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700"
       >
         <div>
@@ -176,10 +176,19 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
                   key={column.id} 
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * index }}
+                  transition={{ 
+                    delay: 0.1 * index,
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30
+                  }}
+                  whileHover={{ 
+                    scale: 1.01,
+                    transition: { duration: 0.2 }
+                  }}
                   className="flex-1 min-w-[320px] max-w-[400px]"
                 >
-                  <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 h-full shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 h-full shadow-sm hover:shadow-md transition-all duration-300">
                     <TaskColumn
                       title={column.title}
                       status={column.id}

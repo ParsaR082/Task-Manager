@@ -33,9 +33,13 @@ const priorities: { value: Priority; label: string; baseColor: string; hoverColo
 export function PriorityFilter({ selectedPriority, onPriorityChange }: PriorityFilterProps) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-slate-600 dark:text-slate-400 mr-2">
+      <motion.span 
+        className="text-sm text-slate-600 dark:text-slate-400 mr-2 font-medium"
+        whileHover={{ scale: 1.05 }}
+        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+      >
         Priority:
-      </span>
+      </motion.span>
       <div className="flex gap-2">
         {priorities.map((priority) => (
           <motion.button
@@ -52,17 +56,54 @@ export function PriorityFilter({ selectedPriority, onPriorityChange }: PriorityF
                 ? 'text-slate-900 dark:text-slate-100' 
                 : 'text-slate-700 dark:text-slate-300'
             )}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ 
+              scale: 1.08,
+              y: -2,
+              boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+            }}
+            whileTap={{ 
+              scale: 0.92,
+              boxShadow: "0 0 0 rgba(0,0,0,0)"
+            }}
             initial={false}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 15
+            }}
           >
             {priority.label}
             {selectedPriority === priority.value && (
               <motion.div
                 layoutId="priorityIndicator"
                 className="absolute inset-0 rounded-full border-2"
+                style={{ 
+                  borderColor: priority.value === 'low' ? '#3b82f6' : 
+                              priority.value === 'medium' ? '#eab308' : '#ef4444' 
+                }}
                 initial={false}
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                animate={{
+                  boxShadow: [
+                    `0 0 0 0 ${priority.value === 'low' ? 'rgba(59, 130, 246, 0)' : 
+                             priority.value === 'medium' ? 'rgba(234, 179, 8, 0)' : 
+                             'rgba(239, 68, 68, 0)'}`,
+                    `0 0 0 4px ${priority.value === 'low' ? 'rgba(59, 130, 246, 0.2)' : 
+                               priority.value === 'medium' ? 'rgba(234, 179, 8, 0.2)' : 
+                               'rgba(239, 68, 68, 0.2)'}`,
+                    `0 0 0 0 ${priority.value === 'low' ? 'rgba(59, 130, 246, 0)' : 
+                             priority.value === 'medium' ? 'rgba(234, 179, 8, 0)' : 
+                             'rgba(239, 68, 68, 0)'}`
+                  ]
+                }}
+                transition={{ 
+                  type: "spring", 
+                  bounce: 0.2, 
+                  duration: 0.6,
+                  boxShadow: {
+                    repeat: Infinity,
+                    duration: 1.5
+                  }
+                }}
               />
             )}
           </motion.button>

@@ -29,18 +29,18 @@ export function TaskCard({ task, index }: TaskCardProps) {
           {...provided.draggableProps}
           initial={false}
           animate={{
-            scale: snapshot.isDragging ? 1.02 : 1,
-            rotate: snapshot.isDragging ? 1 : 0,
+            scale: snapshot.isDragging ? 1.05 : 1,
+            rotate: snapshot.isDragging ? 2 : 0,
             boxShadow: snapshot.isDragging 
-              ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+              ? '0 25px 30px -5px rgba(0, 0, 0, 0.15), 0 15px 15px -5px rgba(0, 0, 0, 0.08)'
               : '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
             zIndex: snapshot.isDragging ? 9999 : 1,
           }}
           transition={{
             type: "spring",
-            stiffness: 500,
-            damping: 30,
-            mass: 1
+            stiffness: 400,
+            damping: 25,
+            mass: 0.8
           }}
           className={cn(
             'group relative bg-white dark:bg-slate-800 rounded-lg border p-4 mb-3',
@@ -53,19 +53,29 @@ export function TaskCard({ task, index }: TaskCardProps) {
           )}
         >
           {/* Drag Handle with Animation */}
-          <motion.div 
-            {...provided.dragHandleProps}
-            className={cn(
-              'absolute top-0 right-0 bottom-0 px-2 flex items-center justify-center',
-              'cursor-grab active:cursor-grabbing',
-              'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300',
-              'opacity-0 group-hover:opacity-100 transition-opacity duration-200'
-            )}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <GripVertical className="w-4 h-4" />
-          </motion.div>
+          <div {...provided.dragHandleProps} className="absolute top-0 right-0 bottom-0 px-2 flex items-center justify-center">
+            <motion.div 
+              className={cn(
+                'cursor-grab active:cursor-grabbing',
+                'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300',
+                'opacity-0 group-hover:opacity-100 transition-opacity duration-200'
+              )}
+              whileHover={{ 
+                scale: 1.15,
+                rotate: [0, 5, -5, 0],
+                transition: {
+                  rotate: {
+                    repeat: Infinity,
+                    duration: 1,
+                    repeatType: "loop"
+                  }
+                }
+              }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <GripVertical className="w-4 h-4" />
+            </motion.div>
+          </div>
 
           {/* Priority Badge with Animation */}
           <div className="flex items-center justify-between mb-2">
@@ -159,7 +169,12 @@ export function TaskCard({ task, index }: TaskCardProps) {
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0 }}
-                className="absolute inset-0 bg-blue-400/10 dark:bg-blue-500/10 rounded-lg pointer-events-none"
+                transition={{
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 20
+                }}
+                className="absolute inset-0 bg-blue-400/10 dark:bg-blue-500/20 rounded-lg pointer-events-none"
               />
             )}
           </AnimatePresence>
