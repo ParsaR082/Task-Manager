@@ -4,8 +4,9 @@ import React, { useState, useCallback } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { Task, TaskStatus } from '@/lib/types';
 import { TaskColumn } from './task-column';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getTasksByStatus } from '@/lib/data';
+import { PriorityFilter } from './priority-filter';
 
 interface TaskBoardProps {
   tasks: Task[];
@@ -20,33 +21,36 @@ const columns = [
 
 export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
+  const [selectedPriority, setSelectedPriority] = useState<'low' | 'medium' | 'high' | null>(null);
   
-  // Group tasks by status
+  // Filter and group tasks by status
   const tasksByStatus = React.useMemo(() => {
+    const filteredTasks = selectedPriority === null 
+      ? localTasks 
+      : localTasks.filter(task => task.priority === selectedPriority);
+
     const groups: Record<TaskStatus, Task[]> = {
       [TaskStatus.TODO]: [],
       [TaskStatus.IN_PROGRESS]: [],
       [TaskStatus.DONE]: []
     };
 
-    localTasks.forEach(task => {
+    filteredTasks.forEach(task => {
       if (groups[task.status]) {
         groups[task.status].push(task);
       }
     });
 
     return groups;
-  }, [localTasks]);
+  }, [localTasks, selectedPriority]);
 
   const handleDragEnd = useCallback((result: DropResult) => {
     const { destination, source, draggableId } = result;
 
-    // No destination (dropped outside)
     if (!destination) {
       return;
     }
 
-    // Dropped in same position
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
@@ -57,7 +61,6 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
     const sourceStatus = source.droppableId as TaskStatus;
     const destinationStatus = destination.droppableId as TaskStatus;
 
-    // Update local state
     setLocalTasks(prevTasks => {
       const newTasks = [...prevTasks];
       const taskIndex = newTasks.findIndex(task => task.id === draggableId);
@@ -72,17 +75,17 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
       return newTasks;
     });
 
-    // Call external handler if provided
     if (onTaskMove) {
       onTaskMove(draggableId, destinationStatus);
     }
   }, [onTaskMove]);
 
   const handleAddTask = useCallback((status: TaskStatus) => {
-    // For now, just log the action
-    // In a real app, this would open a modal or form
     console.debug(`[TaskBoard] Add task requested:`, { status });
   }, []);
+
+  const filteredTaskCount = Object.values(tasksByStatus).flat().length;
+  const totalTaskCount = localTasks.length;
 
   return (
     <motion.div 
@@ -106,10 +109,25 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-slate-600 dark:text-slate-400">
-            <span className="font-medium">{localTasks.length}</span> total tasks
-          </div>
+        <div className="flex items-center gap-6">
+          <PriorityFilter 
+            selectedPriority={selectedPriority}
+            onPriorityChange={setSelectedPriority}
+          />
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={selectedPriority ?? 'all'}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="text-sm text-slate-600 dark:text-slate-400"
+            >
+              <span className="font-medium">{filteredTaskCount}</span>
+              {selectedPriority 
+                ? ` ${selectedPriority} priority tasks` 
+                : ` of ${totalTaskCount} tasks`}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </motion.div>
 
@@ -117,24 +135,26 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex-1 flex overflow-hidden">
           <div className="flex flex-1 gap-6 p-6 overflow-x-auto">
-            {columns.map((column, index) => (
-              <motion.div 
-                key={column.id} 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * index }}
-                className="flex-1 min-w-[320px] max-w-[400px]"
-              >
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 h-full shadow-sm hover-scale">
-                  <TaskColumn
-                    title={column.title}
-                    status={column.id}
-                    tasks={tasksByStatus[column.id]}
-                    onAddTask={() => handleAddTask(column.id)}
-                  />
-                </div>
-              </motion.div>
-            ))}
+            <AnimatePresence mode="wait">
+              {columns.map((column, index) => (
+                <motion.div 
+                  key={column.id} 
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  className="flex-1 min-w-[320px] max-w-[400px]"
+                >
+                  <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 h-full shadow-sm hover:shadow-md transition-shadow duration-200">
+                    <TaskColumn
+                      title={column.title}
+                      status={column.id}
+                      tasks={tasksByStatus[column.id]}
+                      onAddTask={() => handleAddTask(column.id)}
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
       </DragDropContext>
