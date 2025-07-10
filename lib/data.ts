@@ -8,6 +8,16 @@ export function getTasksByStatus(tasks: Task[], status: TaskStatus): Task[] {
 }
 
 /**
+ * Get tasks filtered by project ID
+ */
+export function getTasksByProject(tasks: Task[], projectId: string | null): Task[] {
+  if (projectId === null) {
+    return tasks; // Return all tasks if no project is selected
+  }
+  return tasks.filter(task => task.projectId === projectId);
+}
+
+/**
  * Get overdue tasks (due date is in the past and not completed)
  */
 export function getOverdueTasks(tasks: Task[]): Task[] {

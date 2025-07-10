@@ -5,15 +5,16 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { Task, TaskStatus } from '@/lib/types';
 import { TaskColumn } from './task-column';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getTasksByStatus } from '@/lib/data';
+import { Calendar, Search, X, Layout, Filter, FolderKanban } from 'lucide-react';
 import { PriorityFilter } from './priority-filter';
-import { Calendar, Search, X, Layout, Filter } from 'lucide-react';
 import { TaskCalendar } from './task-calendar';
 import { useSearch } from './dashboard-layout';
+import { cn } from '@/lib/utils';
 
 interface TaskBoardProps {
   tasks: Task[];
   onTaskMove?: (taskId: string, newStatus: TaskStatus) => void;
+  selectedProjectId?: string | null;
 }
 
 const columns = [
@@ -22,7 +23,7 @@ const columns = [
   { id: TaskStatus.DONE, title: 'Done' }
 ];
 
-export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
+export function TaskBoard({ tasks, onTaskMove, selectedProjectId = null }: TaskBoardProps) {
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
   const [selectedPriority, setSelectedPriority] = useState<'low' | 'medium' | 'high' | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -35,6 +36,11 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
   useEffect(() => {
     setSearchQuery(headerSearchQuery);
   }, [headerSearchQuery]);
+  
+  // Update local tasks when tasks prop changes
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
   
   // Filter and group tasks by status
   const tasksByStatus = React.useMemo(() => {
@@ -56,6 +62,11 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
       );
     }
     
+    // Filter by project if selected
+    if (selectedProjectId !== null) {
+      filteredTasks = filteredTasks.filter(task => task.projectId === selectedProjectId);
+    }
+    
     // Then filter by priority
     filteredTasks = selectedPriority === null 
       ? filteredTasks 
@@ -74,7 +85,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
     });
 
     return groups;
-  }, [localTasks, selectedPriority, searchQuery, searchTags]);
+  }, [localTasks, selectedPriority, searchQuery, searchTags, selectedProjectId]);
 
   const handleDragEnd = useCallback((result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -90,7 +101,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
       return;
     }
 
-    const sourceStatus = source.droppableId as TaskStatus;
+    const _sourceStatus = source.droppableId as TaskStatus;
     const destinationStatus = destination.droppableId as TaskStatus;
 
     setLocalTasks(prevTasks => {
@@ -114,7 +125,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
         };
 
         // Find where to insert the task in its new column
-        const tasksInDestination = updatedTasks.filter(
+        const _tasksInDestination = updatedTasks.filter(
           task => task.status === destinationStatus
         );
 
@@ -153,6 +164,25 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
   const filteredTaskCount = Object.values(tasksByStatus).flat().length;
   const totalTaskCount = localTasks.length;
 
+  // Get the current project name if a project is selected
+  const getProjectFilterInfo = () => {
+    if (selectedProjectId === null) {
+      return null;
+    }
+    
+    const matchingTask = localTasks.find(task => task.projectId === selectedProjectId);
+    if (!matchingTask) {
+      return null;
+    }
+    
+    return {
+      id: selectedProjectId,
+      name: `Project: ${selectedProjectId}` // In a real app, you'd get the actual project name
+    };
+  };
+  
+  const projectInfo = getProjectFilterInfo();
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -176,6 +206,22 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
             >
               <Layout className="w-6 h-6 text-blue-500" />
               Task Board
+              {projectInfo && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="ml-2 text-sm font-normal bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full flex items-center gap-1.5"
+                >
+                  <FolderKanban className="w-3.5 h-3.5" />
+                  {projectInfo.name}
+                  <button 
+                    className="ml-1 p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full"
+                    onClick={() => window.dispatchEvent(new CustomEvent('clearProjectFilter'))}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </motion.span>
+              )}
             </motion.h1>
             <motion.p 
               className="text-slate-600 dark:text-slate-400 mt-1"
@@ -215,7 +261,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
             
             <AnimatePresence mode="wait">
               <motion.div 
-                key={`${selectedPriority ?? 'all'}-${searchQuery}`}
+                key={`${selectedPriority ?? 'all'}-${searchQuery}-${selectedProjectId ?? 'all'}`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
@@ -228,6 +274,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
                   : ` of ${totalTaskCount} tasks`}
                 {searchQuery && ' matching search'}
                 {searchTags.length > 0 && ` with tags: ${searchTags.join(', ')}`}
+                {selectedProjectId && ' in selected project'}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -248,14 +295,11 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-10 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl 
-                      bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100
-                      placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                      transition-all duration-200 shadow-sm"
-              placeholder="Search tasks by title..."
+              placeholder="Search tasks..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             />
             {searchQuery && (
-              <button 
+              <button
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 onClick={() => setSearchQuery('')}
               >
@@ -266,50 +310,43 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
         )}
       </motion.div>
 
-      {/* Drag and Drop Context */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex-1 flex overflow-hidden">
-          <div className="flex flex-1 gap-6 p-6 overflow-x-auto">
-            <AnimatePresence>
-              {columns.map((column, index) => (
-                <motion.div 
-                  key={column.id} 
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ 
-                    delay: 0.1 * index,
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30
-                  }}
-                  whileHover={{ 
-                    scale: 1.01,
-                    transition: { duration: 0.2 }
-                  }}
-                  className="flex-1 min-w-[320px] max-w-[400px]"
+      {/* Task Columns */}
+      <div className="flex-1 overflow-x-auto p-6">
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="flex gap-6 h-full min-w-[40rem]">
+            <AnimatePresence mode="wait">
+              {columns.map((column, columnIndex) => (
+                <motion.div
+                  key={column.id}
+                  className="flex-1"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: columnIndex * 0.1 + 0.3 }}
+                  layout
                 >
-                  <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 h-full shadow-md hover:shadow-lg transition-all duration-300">
-                    <TaskColumn
-                      title={column.title}
-                      status={column.id}
-                      tasks={tasksByStatus[column.id]}
-                      onAddTask={() => handleAddTask(column.id)}
-                      searchQuery={searchQuery || headerSearchQuery}
-                    />
-                  </div>
+                  <TaskColumn
+                    title={column.title}
+                    status={column.id}
+                    tasks={tasksByStatus[column.id]}
+                    onAddTask={() => handleAddTask(column.id)}
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
-        </div>
-      </DragDropContext>
+        </DragDropContext>
+      </div>
 
       {/* Calendar Modal */}
-      <TaskCalendar 
-        tasks={localTasks}
-        isOpen={isCalendarOpen}
-        onClose={() => setIsCalendarOpen(false)}
-      />
+      <AnimatePresence>
+        {isCalendarOpen && (
+          <TaskCalendar
+            tasks={localTasks}
+            isOpen={isCalendarOpen}
+            onClose={() => setIsCalendarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 } 

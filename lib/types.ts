@@ -15,6 +15,7 @@ export interface Task {
   dueDate: string; // ISO date string
   tags?: string[];
   assignee?: string;
+  projectId?: string; // Reference to the project this task belongs to
   createdAt?: string; // ISO date string
   updatedAt?: string; // ISO date string
 }

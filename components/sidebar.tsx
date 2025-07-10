@@ -15,18 +15,28 @@ import {
   ChevronRight,
   FolderKanban,
   Command,
-  PanelLeft
+  PanelLeft,
+  Layers
 } from 'lucide-react';
-import { clsx } from 'clsx';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Project } from '@/lib/types';
 
 interface SidebarProps {
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
+  projects?: Project[];
+  selectedProjectId?: string | null;
+  onProjectSelect?: (projectId: string | null) => void;
 }
 
-export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) {
+export function Sidebar({ 
+  collapsed = false, 
+  onCollapsedChange,
+  projects = [],
+  selectedProjectId = null,
+  onProjectSelect
+}: SidebarProps) {
   const [localCollapsed, setLocalCollapsed] = useState(collapsed);
   const pathname = usePathname();
 
@@ -37,11 +47,12 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
     { icon: Users, label: 'Team', href: '/team', active: pathname === '/team' },
   ];
 
-  const projectItems = [
-    { name: 'Website Redesign', color: 'bg-blue-500', tasksCount: 12 },
-    { name: 'Mobile App', color: 'bg-green-500', tasksCount: 8 },
-    { name: 'Marketing Campaign', color: 'bg-purple-500', tasksCount: 5 },
-    { name: 'API Development', color: 'bg-orange-500', tasksCount: 15 },
+  // Default projects if none provided
+  const projectItems = projects.length > 0 ? projects : [
+    { id: 'project-1', name: 'Website Redesign', color: 'bg-blue-500', tasksCount: 12 },
+    { id: 'project-2', name: 'Mobile App', color: 'bg-green-500', tasksCount: 8 },
+    { id: 'project-3', name: 'Marketing Campaign', color: 'bg-purple-500', tasksCount: 5 },
+    { id: 'project-4', name: 'API Development', color: 'bg-orange-500', tasksCount: 15 },
   ];
 
   const handleToggleCollapse = () => {
@@ -49,6 +60,12 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
     setLocalCollapsed(newCollapsed);
     if (onCollapsedChange) {
       onCollapsedChange(newCollapsed);
+    }
+  };
+
+  const handleProjectClick = (projectId: string | null) => {
+    if (onProjectSelect) {
+      onProjectSelect(projectId);
     }
   };
 
@@ -187,19 +204,73 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
               </div>
               
               <div className="space-y-1.5">
+                {/* All Projects Option */}
+                <motion.div
+                  onClick={() => handleProjectClick(null)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl",
+                    "transition-all duration-200",
+                    "cursor-pointer group border",
+                    "hover:shadow-sm",
+                    selectedProjectId === null
+                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border-blue-100 dark:border-blue-800/40 shadow-sm"
+                      : "hover:bg-slate-50 dark:hover:bg-slate-800/60 border-transparent hover:border-slate-200 dark:hover:border-slate-700/70"
+                  )}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 }}
+                  whileHover={{ x: 2 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className={cn(
+                    'w-3 h-3 rounded-full shadow-sm', 
+                    'bg-gradient-to-r from-blue-400 to-purple-400',
+                    'ring-2 ring-white dark:ring-slate-800'
+                  )} />
+                  <div className="flex-1 min-w-0">
+                    <p className={cn(
+                      "text-sm font-medium truncate",
+                      selectedProjectId === null
+                        ? "text-blue-600 dark:text-blue-300"
+                        : "text-slate-700 dark:text-slate-300"
+                    )}>
+                      All Projects
+                    </p>
+                  </div>
+                  <motion.span 
+                    className={cn(
+                      "text-xs font-medium px-2 py-0.5 rounded-full",
+                      selectedProjectId === null
+                        ? "bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",
+                      selectedProjectId === null ? "opacity-100" : "opacity-0 group-hover:opacity-100 transition-opacity"
+                    )}
+                    initial={{ scale: 0.8 }}
+                    whileHover={{ scale: 1.1 }}
+                  >
+                    {projectItems.reduce((sum, project) => sum + project.tasksCount, 0)}
+                  </motion.span>
+                </motion.div>
+                
+                {/* Project List */}
                 {projectItems.map((project, index) => (
                   <motion.div
-                    key={index}
+                    key={project.id}
+                    onClick={() => handleProjectClick(project.id)}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-xl",
-                      "hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all duration-200",
-                      "cursor-pointer group border border-transparent",
-                      "hover:border-slate-200 dark:hover:border-slate-700/70 hover:shadow-sm"
+                      "transition-all duration-200",
+                      "cursor-pointer group border",
+                      "hover:shadow-sm",
+                      selectedProjectId === project.id
+                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border-blue-100 dark:border-blue-800/40 shadow-sm"
+                        : "hover:bg-slate-50 dark:hover:bg-slate-800/60 border-transparent hover:border-slate-200 dark:hover:border-slate-700/70"
                     )}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ delay: (index + 1) * 0.1 }}
                     whileHover={{ x: 2 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     <div className={cn(
                       'w-3 h-3 rounded-full shadow-sm', 
@@ -207,15 +278,22 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
                       'ring-2 ring-white dark:ring-slate-800'
                     )} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                      <p className={cn(
+                        "text-sm font-medium truncate",
+                        selectedProjectId === project.id
+                          ? "text-blue-600 dark:text-blue-300"
+                          : "text-slate-700 dark:text-slate-300"
+                      )}>
                         {project.name}
                       </p>
                     </div>
                     <motion.span 
                       className={cn(
                         "text-xs font-medium px-2 py-0.5 rounded-full",
-                        "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",
-                        "opacity-0 group-hover:opacity-100 transition-opacity"
+                        selectedProjectId === project.id
+                          ? "bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",
+                        selectedProjectId === project.id ? "opacity-100" : "opacity-0 group-hover:opacity-100 transition-opacity"
                       )}
                       initial={{ scale: 0.8 }}
                       whileHover={{ scale: 1.1 }}
@@ -225,6 +303,57 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
                   </motion.div>
                 ))}
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Collapsed Projects Section */}
+        <AnimatePresence>
+          {localCollapsed && (
+            <motion.div 
+              className="mt-8 flex flex-col items-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <motion.div
+                className={cn(
+                  "p-2 rounded-lg mb-2",
+                  selectedProjectId === null
+                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                )}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => handleProjectClick(null)}
+                title="All Projects"
+              >
+                <Layers className="w-5 h-5" />
+              </motion.div>
+              
+              {projectItems.map((project) => (
+                <motion.div
+                  key={project.id}
+                  className={cn(
+                    "p-2 rounded-lg mb-2 relative",
+                    selectedProjectId === project.id
+                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 shadow-sm"
+                      : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  )}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => handleProjectClick(project.id)}
+                  title={project.name}
+                >
+                  <FolderKanban className="w-5 h-5" />
+                  <div className={cn(
+                    'absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full', 
+                    project.color,
+                    'ring-2 ring-white dark:ring-slate-900'
+                  )} />
+                </motion.div>
+              ))}
             </motion.div>
           )}
         </AnimatePresence>

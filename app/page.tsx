@@ -1,14 +1,19 @@
 'use client';
 
 import React from 'react';
-import { DashboardLayout } from '@/components/dashboard-layout';
-import { TaskBoard } from '@/components/task-board';
-import { Task, TaskStatus } from '@/lib/types';
-import { AnalyticsSection } from '@/components/analytics-section';
-import { motion } from 'framer-motion';
+import { ProjectTaskBoard } from '@/components/project-task-board';
+import { Task, TaskStatus, Project } from '@/lib/types';
 
-// Sample tasks data
-const tasks: Task[] = [
+// Sample projects data
+const sampleProjects: Project[] = [
+  { id: 'project-1', name: 'Website Redesign', color: 'bg-blue-500', tasksCount: 0 },
+  { id: 'project-2', name: 'Mobile App', color: 'bg-green-500', tasksCount: 0 },
+  { id: 'project-3', name: 'Marketing Campaign', color: 'bg-purple-500', tasksCount: 0 },
+  { id: 'project-4', name: 'API Development', color: 'bg-orange-500', tasksCount: 0 },
+];
+
+// Sample tasks data with projectId field
+const sampleTasks: Task[] = [
   {
     id: '1',
     title: 'Design new dashboard layout',
@@ -16,7 +21,8 @@ const tasks: Task[] = [
     status: TaskStatus.TODO,
     priority: 'high',
     dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
-    tags: ['Design', 'UI/UX']
+    tags: ['Design', 'UI/UX'],
+    projectId: 'project-1'
   },
   {
     id: '2',
@@ -25,7 +31,8 @@ const tasks: Task[] = [
     status: TaskStatus.IN_PROGRESS,
     priority: 'high',
     dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day from now
-    tags: ['Development', 'Security']
+    tags: ['Development', 'Security'],
+    projectId: 'project-1'
   },
   {
     id: '3',
@@ -34,7 +41,8 @@ const tasks: Task[] = [
     status: TaskStatus.TODO,
     priority: 'medium',
     dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
-    tags: ['Documentation', 'API']
+    tags: ['Documentation', 'API'],
+    projectId: 'project-4'
   },
   {
     id: '4',
@@ -43,7 +51,8 @@ const tasks: Task[] = [
     status: TaskStatus.IN_PROGRESS,
     priority: 'medium',
     dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-    tags: ['DevOps', 'Automation']
+    tags: ['DevOps', 'Automation'],
+    projectId: 'project-4'
   },
   {
     id: '5',
@@ -52,7 +61,8 @@ const tasks: Task[] = [
     status: TaskStatus.DONE,
     priority: 'high',
     dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-    tags: ['Database', 'Performance']
+    tags: ['Database', 'Performance'],
+    projectId: 'project-4'
   },
   {
     id: '6',
@@ -61,7 +71,8 @@ const tasks: Task[] = [
     status: TaskStatus.TODO,
     priority: 'low',
     dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-    tags: ['Testing', 'User Research']
+    tags: ['Testing', 'User Research'],
+    projectId: 'project-2'
   },
   {
     id: '7',
@@ -70,7 +81,8 @@ const tasks: Task[] = [
     status: TaskStatus.DONE,
     priority: 'medium',
     dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-    tags: ['Meeting', 'Team']
+    tags: ['Meeting', 'Team'],
+    projectId: 'project-3'
   },
   {
     id: '8',
@@ -79,38 +91,23 @@ const tasks: Task[] = [
     status: TaskStatus.DONE,
     priority: 'low',
     dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-    tags: ['Maintenance', 'Dependencies']
+    tags: ['Maintenance', 'Dependencies'],
+    projectId: 'project-2'
   }
 ];
 
-export default function Home() {
+export default function HomePage() {
+  // Handle task movement between columns
   const handleTaskMove = (taskId: string, newStatus: TaskStatus) => {
     console.log(`Task ${taskId} moved to ${newStatus}`);
+    // In a real app, you would update your database or state here
   };
 
   return (
-    <DashboardLayout>
-      <div className="flex flex-col space-y-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <AnalyticsSection tasks={tasks} />
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex-1"
-        >
-          <TaskBoard 
-            tasks={tasks} 
-            onTaskMove={handleTaskMove} 
-          />
-        </motion.div>
-      </div>
-    </DashboardLayout>
+    <ProjectTaskBoard 
+      tasks={sampleTasks}
+      projects={sampleProjects}
+      onTaskMove={handleTaskMove}
+    />
   );
 }
