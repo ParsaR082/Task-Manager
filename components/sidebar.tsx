@@ -325,6 +325,7 @@ export function Sidebar({
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
         onSave={addTask}
+        projects={projects}
       />
 
       {/* Project Modal */}

@@ -4,18 +4,17 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Task, TaskStatus, TaskPriority } from '@/lib/types';
-import { useProjects } from '@/lib/project-context';
+import { Task, TaskStatus, TaskPriority, Project } from '@/lib/types';
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (task: Omit<Task, 'id'>) => void;
   task?: Task;
+  projects?: Project[];
 }
 
-export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
-  const { projects } = useProjects();
+export function TaskModal({ isOpen, onClose, onSave, task, projects = [] }: TaskModalProps) {
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [dueDate, setDueDate] = useState(task?.dueDate || '');
@@ -137,6 +136,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
                   </select>
                 </div>
 

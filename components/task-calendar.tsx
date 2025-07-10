@@ -70,7 +70,8 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
   };
   
   // Get highest priority from a list of tasks
-  const getHighestPriority = (taskList: Task[]): 'high' | 'medium' | 'low' => {
+  const getHighestPriority = (taskList: Task[]): 'urgent' | 'high' | 'medium' | 'low' => {
+    if (taskList.some(task => task.priority === 'urgent')) return 'urgent';
     if (taskList.some(task => task.priority === 'high')) return 'high';
     if (taskList.some(task => task.priority === 'medium')) return 'medium';
     return 'low';
@@ -111,7 +112,12 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
   const priorityColors = {
     low: 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900/30 dark:border-blue-800/50 dark:text-blue-300',
     medium: 'bg-yellow-100 border-yellow-300 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-800/50 dark:text-yellow-300',
-    high: 'bg-red-100 border-red-300 text-red-800 dark:bg-red-900/30 dark:border-red-800/50 dark:text-red-300'
+    high: 'bg-red-100 border-red-300 text-red-800 dark:bg-red-900/30 dark:border-red-800/50 dark:text-red-300',
+    urgent: 'bg-purple-100 border-purple-300 text-purple-800 dark:bg-purple-900/30 dark:border-purple-800/50 dark:text-purple-300'
+  };
+
+  const getPriorityColor = (priority: string) => {
+    return priorityColors[priority as keyof typeof priorityColors] || priorityColors.medium;
   };
 
   return (
@@ -255,7 +261,7 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
                             }}
                             className={cn(
                               'p-3 rounded-lg border cursor-pointer relative group',
-                              priorityColors[task.priority]
+                              getPriorityColor(task.priority)
                             )}
                             onClick={() => {
                               onClose();

@@ -135,7 +135,13 @@ function mapTaskStatus(status: TaskStatus): string {
 }
 
 function mapPriority(priority: Priority): string {
-  return priority.toLowerCase();
+  const mapping: Record<Priority, string> = {
+    LOW: 'low',
+    MEDIUM: 'medium',
+    HIGH: 'high',
+    URGENT: 'urgent'
+  };
+  return mapping[priority];
 }
 
 function mapToDbTaskStatus(status: string): TaskStatus {
@@ -151,7 +157,8 @@ function mapToDbPriority(priority: string): Priority {
   const mapping: Record<string, Priority> = {
     'low': Priority.LOW,
     'medium': Priority.MEDIUM,
-    'high': Priority.HIGH
+    'high': Priority.HIGH,
+    'urgent': Priority.URGENT
   };
   return mapping[priority] || Priority.MEDIUM;
 } 

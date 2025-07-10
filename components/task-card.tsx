@@ -37,6 +37,14 @@ const priorityColors = {
     accent: 'bg-red-500 dark:bg-red-400',
     glow: 'shadow-red-500/20 dark:shadow-red-400/20',
     tag: 'bg-red-100/80 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+  },
+  urgent: {
+    bg: 'bg-purple-50/80 dark:bg-purple-900/20',
+    border: 'border-purple-200 dark:border-purple-800/40',
+    text: 'text-purple-700 dark:text-purple-300',
+    accent: 'bg-purple-500 dark:bg-purple-400',
+    glow: 'shadow-purple-500/20 dark:shadow-purple-400/20',
+    tag: 'bg-purple-100/80 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300'
   }
 };
 
@@ -113,7 +121,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
     router.push(`/tasks/${task.id}`);
   };
   
-  const priorityColor = priorityColors[task.priority];
+  const priorityColor = priorityColors[task.priority as keyof typeof priorityColors] || priorityColors.medium;
   
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -163,7 +171,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
               ? 'border-red-200/60 dark:border-red-800/40 bg-red-50/70 dark:bg-red-900/30' 
               : isCompleted
                 ? 'border-green-200/60 dark:border-green-800/40 bg-green-50/70 dark:bg-green-900/30'
-                : `border-${task.priority === 'low' ? 'blue' : task.priority === 'medium' ? 'yellow' : 'red'}-200/60 dark:border-${task.priority === 'low' ? 'blue' : task.priority === 'medium' ? 'yellow' : 'red'}-800/40 ${priorityColor.bg}`,
+                : `${priorityColor.border} ${priorityColor.bg}`,
             snapshot.isDragging && 'ring-2 ring-blue-400 dark:ring-blue-500',
             // Glass effect enhancements
             'bg-white/60 dark:bg-slate-900/50',
