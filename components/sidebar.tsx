@@ -43,6 +43,7 @@ export function Sidebar({
   const navigationItems = [
     { icon: Home, label: 'Dashboard', href: '/', active: pathname === '/' },
     { icon: Calendar, label: 'Calendar', href: '/calendar', active: pathname === '/calendar' },
+    { icon: BarChart3, label: 'Analytics', href: '/analytics', active: pathname === '/analytics' },
   ];
 
   // Default projects if none provided
