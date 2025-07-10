@@ -22,12 +22,22 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const router = useRouter();
   
+  // Helper function to normalize a date to YYYY-MM-DD format in local timezone
+  const formatDateToYYYYMMDD = (date: Date | string): string => {
+    const d = new Date(date);
+    // Get date parts in local timezone
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
   // Group tasks by date
   const tasksByDate = useMemo(() => {
     const grouped: Record<string, Task[]> = {};
     
     tasks.forEach(task => {
-      const dateKey = new Date(task.dueDate).toISOString().split('T')[0];
+      const dateKey = formatDateToYYYYMMDD(task.dueDate);
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
@@ -39,7 +49,7 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
   
   // Get tasks for selected date, filtered by search query
   const tasksForSelectedDate = useMemo(() => {
-    const dateKey = selectedDate.toISOString().split('T')[0];
+    const dateKey = formatDateToYYYYMMDD(selectedDate);
     const tasksForDate = tasksByDate[dateKey] || [];
     
     if (!searchQuery.trim()) {
@@ -70,7 +80,7 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
   const renderDayContents = (day: number, date?: Date) => {
     if (!date) return <span>{day}</span>;
     
-    const dateKey = date.toISOString().split('T')[0];
+    const dateKey = formatDateToYYYYMMDD(date);
     const tasksForDay = tasksByDate[dateKey] || [];
     const hasTask = tasksForDay.length > 0;
     
