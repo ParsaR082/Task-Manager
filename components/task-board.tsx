@@ -7,7 +7,7 @@ import { TaskColumn } from './task-column';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTasksByStatus } from '@/lib/data';
 import { PriorityFilter } from './priority-filter';
-import { Calendar, Search, X } from 'lucide-react';
+import { Calendar, Search, X, Layout, Filter } from 'lucide-react';
 import { TaskCalendar } from './task-calendar';
 import { useSearch } from './dashboard-layout';
 
@@ -164,42 +164,64 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
-        className="flex flex-col space-y-4 p-6 border-b border-slate-200 dark:border-slate-700"
+        className="flex flex-col space-y-6 p-6 border-b border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-t-2xl shadow-sm"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <motion.h1 
+              className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <Layout className="w-6 h-6 text-blue-500" />
               Task Board
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">
+            </motion.h1>
+            <motion.p 
+              className="text-slate-600 dark:text-slate-400 mt-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
               Manage your tasks with drag and drop
-            </p>
+            </motion.p>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 self-end md:self-auto">
             {/* Calendar Button */}
             <motion.button
               onClick={() => setIsCalendarOpen(true)}
-              className="p-2 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/40"
-              whileHover={{ scale: 1.1 }}
+              className="p-2.5 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/40 shadow-sm"
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               title="View Calendar"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.3 }}
             >
               <Calendar className="w-5 h-5" />
             </motion.button>
             
-            <PriorityFilter 
-              selectedPriority={selectedPriority}
-              onPriorityChange={setSelectedPriority}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.3 }}
+            >
+              <PriorityFilter 
+                selectedPriority={selectedPriority}
+                onPriorityChange={setSelectedPriority}
+              />
+            </motion.div>
+            
             <AnimatePresence mode="wait">
               <motion.div 
                 key={`${selectedPriority ?? 'all'}-${searchQuery}`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="text-sm text-slate-600 dark:text-slate-400"
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-full shadow-sm text-sm text-slate-600 dark:text-slate-400"
               >
+                <Filter className="w-3.5 h-3.5 text-slate-400" />
                 <span className="font-medium">{filteredTaskCount}</span>
                 {selectedPriority 
                   ? ` ${selectedPriority} priority tasks` 
@@ -226,7 +248,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-10 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg 
+              className="block w-full pl-10 pr-10 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl 
                       bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100
                       placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                       transition-all duration-200 shadow-sm"
@@ -266,7 +288,7 @@ export function TaskBoard({ tasks, onTaskMove }: TaskBoardProps) {
                   }}
                   className="flex-1 min-w-[320px] max-w-[400px]"
                 >
-                  <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 h-full shadow-sm hover:shadow-md transition-all duration-300">
+                  <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 h-full shadow-md hover:shadow-lg transition-all duration-300">
                     <TaskColumn
                       title={column.title}
                       status={column.id}

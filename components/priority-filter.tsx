@@ -1,114 +1,135 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { Filter, ChevronDown, X, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-type Priority = 'low' | 'medium' | 'high';
-
 interface PriorityFilterProps {
-  selectedPriority: Priority | null;
-  onPriorityChange: (priority: Priority | null) => void;
+  selectedPriority: 'low' | 'medium' | 'high' | null;
+  onPriorityChange: (priority: 'low' | 'medium' | 'high' | null) => void;
 }
 
-const priorities: { value: Priority; label: string; baseColor: string; hoverColor: string }[] = [
-  { 
-    value: 'low', 
-    label: 'Low', 
-    baseColor: 'bg-blue-100 dark:bg-blue-900/30',
-    hoverColor: 'hover:bg-blue-200 dark:hover:bg-blue-800/40'
-  },
-  { 
-    value: 'medium', 
-    label: 'Medium', 
-    baseColor: 'bg-yellow-100 dark:bg-yellow-900/30',
-    hoverColor: 'hover:bg-yellow-200 dark:hover:bg-yellow-800/40'
-  },
-  { 
-    value: 'high', 
-    label: 'High', 
-    baseColor: 'bg-red-100 dark:bg-red-900/30',
-    hoverColor: 'hover:bg-red-200 dark:hover:bg-red-800/40'
-  }
+const priorityOptions = [
+  { value: null, label: 'All Priorities', color: 'bg-slate-500 dark:bg-slate-400' },
+  { value: 'low', label: 'Low Priority', color: 'bg-blue-500 dark:bg-blue-400' },
+  { value: 'medium', label: 'Medium Priority', color: 'bg-yellow-500 dark:bg-yellow-400' },
+  { value: 'high', label: 'High Priority', color: 'bg-red-500 dark:bg-red-400' }
 ];
 
 export function PriorityFilter({ selectedPriority, onPriorityChange }: PriorityFilterProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+  
+  // Handle outside clicks to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  // Get the selected option details
+  const selectedOption = priorityOptions.find(option => option.value === selectedPriority);
+  
   return (
-    <div className="flex items-center gap-2">
-      <motion.span 
-        className="text-sm text-slate-600 dark:text-slate-400 mr-2 font-medium"
-        whileHover={{ scale: 1.05 }}
-        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+    <div className="relative" ref={filterRef}>
+      <motion.button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "flex items-center gap-2 px-3 py-2.5 rounded-xl transition-colors",
+          "bg-white dark:bg-slate-800 border shadow-sm",
+          isOpen 
+            ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30" 
+            : "border-slate-200 dark:border-slate-700",
+          "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+        )}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        aria-label="Filter by priority"
+        title="Filter by priority"
       >
-        Priority:
-      </motion.span>
-      <div className="flex gap-2">
-        {priorities.map((priority) => (
-          <motion.button
-            key={priority.value}
-            onClick={() => onPriorityChange(selectedPriority === priority.value ? null : priority.value)}
-            className={cn(
-              'relative px-3 py-1 rounded-full text-sm font-medium transition-all duration-200',
-              'border border-transparent',
-              priority.baseColor,
-              priority.hoverColor,
-              'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
-              selectedPriority === priority.value ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900' : '',
-              selectedPriority === priority.value 
-                ? 'text-slate-900 dark:text-slate-100' 
-                : 'text-slate-700 dark:text-slate-300'
-            )}
-            whileHover={{ 
-              scale: 1.08,
-              y: -2,
-              boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
-            }}
-            whileTap={{ 
-              scale: 0.92,
-              boxShadow: "0 0 0 rgba(0,0,0,0)"
-            }}
-            initial={false}
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 15
-            }}
-          >
-            {priority.label}
-            {selectedPriority === priority.value && (
-              <motion.div
-                layoutId="priorityIndicator"
-                className="absolute inset-0 rounded-full border-2"
-                style={{ 
-                  borderColor: priority.value === 'low' ? '#3b82f6' : 
-                              priority.value === 'medium' ? '#eab308' : '#ef4444' 
-                }}
-                initial={false}
-                animate={{
-                  boxShadow: [
-                    `0 0 0 0 ${priority.value === 'low' ? 'rgba(59, 130, 246, 0)' : 
-                             priority.value === 'medium' ? 'rgba(234, 179, 8, 0)' : 
-                             'rgba(239, 68, 68, 0)'}`,
-                    `0 0 0 4px ${priority.value === 'low' ? 'rgba(59, 130, 246, 0.2)' : 
-                               priority.value === 'medium' ? 'rgba(234, 179, 8, 0.2)' : 
-                               'rgba(239, 68, 68, 0.2)'}`,
-                    `0 0 0 0 ${priority.value === 'low' ? 'rgba(59, 130, 246, 0)' : 
-                             priority.value === 'medium' ? 'rgba(234, 179, 8, 0)' : 
-                             'rgba(239, 68, 68, 0)'}`
-                  ]
-                }}
-                transition={{ 
-                  type: "spring", 
-                  bounce: 0.2, 
-                  duration: 0.6,
-                  boxShadow: {
-                    repeat: Infinity,
-                    duration: 1.5
-                  }
-                }}
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+          <div className="flex items-center gap-2">
+            {selectedPriority !== null && (
+              <span 
+                className={cn(
+                  "w-2.5 h-2.5 rounded-full",
+                  selectedOption?.color
+                )}
               />
             )}
-          </motion.button>
-        ))}
-      </div>
+            <span className="text-sm font-medium">
+              {selectedOption?.label || 'All Priorities'}
+            </span>
+          </div>
+        </div>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+        </motion.div>
+      </motion.button>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className={cn(
+              "absolute right-0 z-50 mt-1 py-1 min-w-[220px]",
+              "bg-white dark:bg-slate-800 rounded-xl shadow-lg",
+              "border border-slate-200 dark:border-slate-700"
+            )}
+          >
+            {priorityOptions.map((option, index) => {
+              const isSelected = selectedPriority === option.value;
+              return (
+                <motion.button
+                  key={index}
+                  onClick={() => {
+                    onPriorityChange(option.value as any);
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    "flex items-center justify-between w-full px-4 py-2.5 text-left text-sm",
+                    "transition-colors",
+                    isSelected
+                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300"
+                  )}
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span 
+                      className={cn(
+                        "w-3 h-3 rounded-full",
+                        option.color
+                      )}
+                    />
+                    <span>{option.label}</span>
+                  </div>
+                  
+                  {isSelected && (
+                    <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  )}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 } 

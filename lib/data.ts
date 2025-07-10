@@ -1,171 +1,117 @@
 import { Task, TaskStatus } from './types';
 
-// Generate dates close to today
-function getNearbyDate(daysOffset: number): string {
-  const date = new Date();
-  date.setDate(date.getDate() + daysOffset);
-  return date.toISOString().split('T')[0];
+/**
+ * Get tasks filtered by status
+ */
+export function getTasksByStatus(tasks: Task[], status: TaskStatus): Task[] {
+  return tasks.filter(task => task.status === status);
 }
 
-export const hardcodedTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Complete Project Proposal',
-    description: 'Finalize the project proposal document with all requirements and submit for review.',
-    status: TaskStatus.TODO,
-    priority: 'high',
-    dueDate: getNearbyDate(2),
-    tags: ['Documentation', 'Planning']
-  },
-  {
-    id: '2',
-    title: 'Review Design Mockups',
-    description: 'Review the design mockups for the new landing page and provide feedback.',
-    status: TaskStatus.IN_PROGRESS,
-    priority: 'medium',
-    dueDate: getNearbyDate(1),
-    tags: ['Design', 'Feedback']
-  },
-  {
-    id: '3',
-    title: 'Setup Development Environment',
-    description: 'Install and configure all necessary tools for the development environment.',
-    status: TaskStatus.DONE,
-    priority: 'low',
-    dueDate: getNearbyDate(-1),
-    tags: ['Setup', 'Development']
-  },
-  {
-    id: '4',
-    title: 'Client Meeting Preparation',
-    description: 'Prepare slides and talking points for the upcoming client meeting.',
-    status: TaskStatus.TODO,
-    priority: 'high',
-    dueDate: getNearbyDate(0), // Today
-    tags: ['Meeting', 'Client']
-  },
-  {
-    id: '5',
-    title: 'Database Schema Design',
-    description: 'Design the database schema for the new application based on requirements.',
-    status: TaskStatus.IN_PROGRESS,
-    priority: 'medium',
-    dueDate: getNearbyDate(3),
-    tags: ['Database', 'Architecture']
-  },
-  {
-    id: '6',
-    title: 'API Documentation',
-    description: 'Document all API endpoints, request parameters, and response formats.',
-    status: TaskStatus.TODO,
-    priority: 'medium',
-    dueDate: getNearbyDate(4),
-    tags: ['Documentation', 'API']
-  },
-  {
-    id: '7',
-    title: 'Code Review',
-    description: 'Review pull requests and provide feedback on code quality and standards.',
-    status: TaskStatus.IN_PROGRESS,
-    priority: 'high',
-    dueDate: getNearbyDate(0), // Today
-    tags: ['Code Review', 'Quality']
-  },
-  {
-    id: '8',
-    title: 'Unit Test Implementation',
-    description: 'Write unit tests for all core functionality to ensure code quality.',
-    status: TaskStatus.TODO,
-    priority: 'medium',
-    dueDate: getNearbyDate(5),
-    tags: ['Testing', 'Quality']
-  },
-  {
-    id: '9',
-    title: 'Performance Optimization',
-    description: 'Identify and fix performance bottlenecks in the application.',
-    status: TaskStatus.DONE,
-    priority: 'low',
-    dueDate: getNearbyDate(-2),
-    tags: ['Performance', 'Optimization']
-  },
-  {
-    id: '10',
-    title: 'Deployment Planning',
-    description: 'Create a deployment plan for the next release including rollback strategy.',
-    status: TaskStatus.TODO,
-    priority: 'high',
-    dueDate: getNearbyDate(7),
-    tags: ['Deployment', 'Planning']
-  },
-  {
-    id: '11',
-    title: 'User Documentation',
-    description: 'Create user guides and documentation for end users.',
-    status: TaskStatus.IN_PROGRESS,
-    priority: 'low',
-    dueDate: getNearbyDate(6),
-    tags: ['Documentation', 'User Guide']
-  },
-  {
-    id: '12',
-    title: 'Security Audit',
-    description: 'Conduct a security audit of the application and address any vulnerabilities.',
-    status: TaskStatus.DONE,
-    priority: 'high',
-    dueDate: getNearbyDate(-3),
-    tags: ['Security', 'Audit']
-  }
-];
-
-export function getTaskStats() {
+/**
+ * Get overdue tasks (due date is in the past and not completed)
+ */
+export function getOverdueTasks(tasks: Task[]): Task[] {
   const now = new Date();
+  return tasks.filter(task => 
+    new Date(task.dueDate) < now && task.status !== TaskStatus.DONE
+  );
+}
+
+/**
+ * Get tasks due today
+ */
+export function getTasksDueToday(tasks: Task[]): Task[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   
-  const stats = {
-    total: hardcodedTasks.length,
-    completed: 0,
-    inProgress: 0,
-    todo: 0,
-    overdue: 0
-  };
-
-  hardcodedTasks.forEach(task => {
-    // Count by status
-    switch (task.status) {
-      case TaskStatus.DONE:
-        stats.completed++;
-        break;
-      case TaskStatus.IN_PROGRESS:
-        stats.inProgress++;
-        break;
-      case TaskStatus.TODO:
-        stats.todo++;
-        break;
-    }
-
-    // Check for overdue tasks
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  return tasks.filter(task => {
     const dueDate = new Date(task.dueDate);
-    if (dueDate < now && task.status !== TaskStatus.DONE) {
-      stats.overdue++;
-    }
+    dueDate.setHours(0, 0, 0, 0);
+    return dueDate >= today && dueDate < tomorrow;
   });
-
-  return stats;
 }
 
-export function getTasksByStatus(status: TaskStatus): Task[] {
-  return hardcodedTasks.filter(task => task.status === status);
-}
-
-export function getTaskById(id: string): Task | undefined {
-  return hardcodedTasks.find(task => task.id === id);
-}
-
-// Debug utilities
-export function debugLogTaskOperation(operation: string, taskId: string, details?: any) {
-  console.debug(`[Task Operation] ${operation}:`, {
-    taskId,
-    timestamp: new Date().toISOString(),
-    ...details
+/**
+ * Get tasks due this week
+ */
+export function getTasksDueThisWeek(tasks: Task[]): Task[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const endOfWeek = new Date(today);
+  endOfWeek.setDate(endOfWeek.getDate() + (7 - endOfWeek.getDay()));
+  
+  return tasks.filter(task => {
+    const dueDate = new Date(task.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+    return dueDate >= today && dueDate <= endOfWeek;
   });
+}
+
+/**
+ * Get tasks by priority
+ */
+export function getTasksByPriority(tasks: Task[], priority: 'low' | 'medium' | 'high'): Task[] {
+  return tasks.filter(task => task.priority === priority);
+}
+
+/**
+ * Get tasks by tag
+ */
+export function getTasksByTag(tasks: Task[], tag: string): Task[] {
+  return tasks.filter(task => task.tags?.includes(tag));
+}
+
+/**
+ * Get all unique tags from tasks
+ */
+export function getAllTags(tasks: Task[]): string[] {
+  const tagsSet = new Set<string>();
+  
+  tasks.forEach(task => {
+    task.tags?.forEach(tag => tagsSet.add(tag));
+  });
+  
+  return Array.from(tagsSet).sort();
+}
+
+/**
+ * Search tasks by query (searches in title and description)
+ */
+export function searchTasks(tasks: Task[], query: string): Task[] {
+  const normalizedQuery = query.toLowerCase().trim();
+  
+  if (!normalizedQuery) {
+    return tasks;
+  }
+  
+  return tasks.filter(task => 
+    task.title.toLowerCase().includes(normalizedQuery) || 
+    task.description.toLowerCase().includes(normalizedQuery)
+  );
+}
+
+/**
+ * Get task statistics
+ */
+export function getTaskStats(tasks: Task[]) {
+  const total = tasks.length;
+  const completed = tasks.filter(task => task.status === TaskStatus.DONE).length;
+  const inProgress = tasks.filter(task => task.status === TaskStatus.IN_PROGRESS).length;
+  const todo = tasks.filter(task => task.status === TaskStatus.TODO).length;
+  const overdue = tasks.filter(task => 
+    new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE
+  ).length;
+  
+  return {
+    total,
+    completed,
+    inProgress,
+    todo,
+    overdue,
+    completionRate: total > 0 ? Math.round((completed / total) * 100) : 0
+  };
 } 

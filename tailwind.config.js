@@ -46,11 +46,11 @@ module.exports = {
           to: { opacity: '1' },
         },
         slideIn: {
-          from: { 
+          from: {
             opacity: '0',
             transform: 'translateY(10px)',
           },
-          to: { 
+          to: {
             opacity: '1',
             transform: 'translateY(0)',
           },
@@ -65,13 +65,40 @@ module.exports = {
             transform: 'scale(1)',
           },
         },
+        shimmer: {
+          '0%': { backgroundPosition: '-1000px 0' },
+          '100%': { backgroundPosition: '1000px 0' },
+        },
+        pulse: {
+          '0%, 100%': { opacity: 1 },
+          '50%': { opacity: 0.5 },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-in': 'slideIn 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
+        'shimmer': 'shimmer 2s linear infinite',
+        'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'float': 'float 3s ease-in-out infinite',
+      },
+      backdropFilter: {
+        'none': 'none',
+        'blur': 'blur(8px)',
+      },
+      boxShadow: {
+        'glass': '0 0 15px rgba(0, 0, 0, 0.05)',
+        'glass-hover': '0 0 20px rgba(0, 0, 0, 0.1)',
+        'glass-dark': '0 0 15px rgba(0, 0, 0, 0.2)',
+        'glass-hover-dark': '0 0 20px rgba(0, 0, 0, 0.3)',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar')({ nocompatible: true }),
+  ],
 } 

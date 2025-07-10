@@ -1,7 +1,10 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Search, X, Tag as TagIcon } from 'lucide-react';
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, X, Tag, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useSearch } from './dashboard-layout';
 
 interface TaskSearchProps {
   onSearch?: (query: string, tags: string[]) => void;
@@ -9,60 +12,18 @@ interface TaskSearchProps {
 }
 
 export function TaskSearch({ onSearch, availableTags = [] }: TaskSearchProps) {
-  const [query, setQuery] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [isFocused, setIsFocused] = useState(false);
-  const [showTagsDropdown, setShowTagsDropdown] = useState(false);
+  // Use search context
+  const { searchQuery, setSearchQuery, searchTags, setSearchTags } = useSearch();
+  
+  const [localQuery, setLocalQuery] = useState(searchQuery);
+  const [localTags, setLocalTags] = useState<string[]>(searchTags);
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
+  
   const searchRef = useRef<HTMLDivElement>(null);
-
-  // Handle clicks outside to close dropdown
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowTagsDropdown(false);
-      }
-    }
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Debounce search to avoid too many updates
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (onSearch) {
-        onSearch(query, selectedTags);
-      }
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [query, selectedTags, onSearch]);
-
-  const toggleTag = useCallback((tag: string) => {
-    setSelectedTags(prev => {
-      const isSelected = prev.includes(tag);
-      return isSelected
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag];
-    });
-  }, []);
-
-  const removeTag = useCallback((tagToRemove: string) => {
-    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
-  }, []);
-
-  const clearSearch = () => {
-    setQuery('');
-    if (onSearch) {
-      onSearch('', selectedTags);
-    }
-  };
-
-  const clearAllTags = () => {
-    setSelectedTags([]);
-  };
-
-  // Group tags by first letter for better organization
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Group tags alphabetically
   const groupedTags = availableTags.reduce((acc, tag) => {
     const firstLetter = tag.charAt(0).toUpperCase();
     if (!acc[firstLetter]) {
@@ -71,154 +32,271 @@ export function TaskSearch({ onSearch, availableTags = [] }: TaskSearchProps) {
     acc[firstLetter].push(tag);
     return acc;
   }, {} as Record<string, string[]>);
-
-  // Sort the groups alphabetically
+  
   const sortedGroups = Object.keys(groupedTags).sort();
+  
+  // Handle outside clicks to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowTagDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  // Sync local state with context
+  useEffect(() => {
+    setLocalQuery(searchQuery);
+    setLocalTags(searchTags);
+  }, [searchQuery, searchTags]);
+  
+  // Handle search input changes
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalQuery(value);
+    setSearchQuery(value);
+    
+    if (onSearch) {
+      onSearch(value, localTags);
+    }
+  };
+  
+  // Handle tag selection
+  const handleTagToggle = (tag: string) => {
+    const newTags = localTags.includes(tag)
+      ? localTags.filter(t => t !== tag)
+      : [...localTags, tag];
+    
+    setLocalTags(newTags);
+    setSearchTags(newTags);
+    
+    if (onSearch) {
+      onSearch(localQuery, newTags);
+    }
+  };
+  
+  // Clear all filters
+  const handleClearAll = () => {
+    setLocalQuery('');
+    setLocalTags([]);
+    setSearchQuery('');
+    setSearchTags([]);
+    
+    if (onSearch) {
+      onSearch('', []);
+    }
+    
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+  
+  // Remove a single tag
+  const handleRemoveTag = (tag: string) => {
+    const newTags = localTags.filter(t => t !== tag);
+    setLocalTags(newTags);
+    setSearchTags(newTags);
+    
+    if (onSearch) {
+      onSearch(localQuery, newTags);
+    }
+  };
 
   return (
-    <div className="w-full max-w-2xl" ref={searchRef}>
-      <div
-        className={cn(
-          'relative flex items-center gap-2 p-2 rounded-lg transition-all duration-200',
-          'bg-white dark:bg-slate-800 border shadow-sm',
-          isFocused
-            ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md'
-            : 'border-slate-200 dark:border-slate-700'
-        )}
-      >
-        <Search className="w-5 h-5 text-slate-500 dark:text-slate-400 min-w-5" />
+    <div className="relative w-full" ref={searchRef}>
+      {/* Search Input */}
+      <div className={cn(
+        "relative flex items-center w-full rounded-xl transition-all duration-300",
+        "bg-white dark:bg-slate-800 border shadow-sm",
+        inputFocused
+          ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30"
+          : "border-slate-200 dark:border-slate-700",
+        (localQuery || localTags.length > 0) && "bg-blue-50/50 dark:bg-slate-800/80"
+      )}>
+        <div className="flex items-center pl-3 text-slate-400 dark:text-slate-500">
+          <Search className="h-4 w-4" />
+        </div>
+        
         <input
+          ref={inputRef}
           type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder={selectedTags.length > 0 ? "Search with tags..." : "Search tasks..."}
-          className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400"
+          value={localQuery}
+          onChange={handleQueryChange}
+          onFocus={() => setInputFocused(true)}
+          onBlur={() => setInputFocused(false)}
+          className={cn(
+            "flex-1 py-2.5 px-3 bg-transparent",
+            "text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500",
+            "focus:outline-none text-sm"
+          )}
+          placeholder="Search tasks..."
         />
         
-        {/* Show clear button when there's input */}
-        {query && (
+        {/* Tag Filter Button */}
+        <div className="flex items-center gap-1.5 pr-2">
+          {localTags.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full"
+            >
+              <span>{localTags.length}</span>
+            </motion.div>
+          )}
+          
           <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
-            onClick={clearSearch}
+            type="button"
+            onClick={() => setShowTagDropdown(!showTagDropdown)}
+            className={cn(
+              "p-2 rounded-lg transition-colors",
+              "hover:bg-slate-100 dark:hover:bg-slate-700",
+              showTagDropdown ? "bg-slate-100 dark:bg-slate-700 text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"
+            )}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="Filter by tags"
+            title="Filter by tags"
           >
-            <X className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+            <Tag className="h-4 w-4" />
           </motion.button>
-        )}
-        
-        {/* Tag button */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowTagsDropdown(!showTagsDropdown)}
-          className={cn(
-            "p-1.5 rounded-full transition-colors relative",
-            selectedTags.length > 0 
-              ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400" 
-              : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+          
+          {(localQuery || localTags.length > 0) && (
+            <motion.button
+              type="button"
+              onClick={handleClearAll}
+              className="p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              aria-label="Clear search"
+              title="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </motion.button>
           )}
-        >
-          <TagIcon className="w-4 h-4" />
-          {selectedTags.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-              {selectedTags.length}
-            </span>
-          )}
-        </motion.button>
+        </div>
       </div>
-
+      
       {/* Selected Tags */}
-      <AnimatePresence>
-        {selectedTags.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex flex-wrap gap-2 mt-2 overflow-hidden"
-          >
-            {selectedTags.map(tag => (
+      {localTags.length > 0 && (
+        <motion.div 
+          className="flex flex-wrap gap-1.5 mt-2"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          transition={{ duration: 0.2 }}
+        >
+          <AnimatePresence>
+            {localTags.map((tag, index) => (
               <motion.span
                 key={tag}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: index * 0.05 }}
               >
                 {tag}
                 <button
-                  onClick={() => removeTag(tag)}
-                  className="p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full"
+                  type="button"
+                  onClick={() => handleRemoveTag(tag)}
+                  className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200 ml-1"
+                  aria-label={`Remove ${tag} tag`}
                 >
-                  <X className="w-3 h-3" />
+                  <X className="h-3 w-3" />
                 </button>
               </motion.span>
             ))}
-            
-            {selectedTags.length > 0 && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
-                onClick={clearAllTags}
-              >
-                Clear all
-              </motion.button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Available Tags Dropdown */}
+          </AnimatePresence>
+        </motion.div>
+      )}
+      
+      {/* Tags Dropdown */}
       <AnimatePresence>
-        {showTagsDropdown && availableTags.length > 0 && (
-          <motion.div 
+        {showTagDropdown && (
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute z-20 mt-2 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-lg max-w-md w-full max-h-[300px] overflow-y-auto"
+            transition={{ duration: 0.2 }}
+            className={cn(
+              "absolute z-50 w-full mt-1 py-2 rounded-xl shadow-lg",
+              "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700",
+              "max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600"
+            )}
           >
-            <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex justify-between items-center">
-              <span>Filter by tags:</span>
-              {selectedTags.length > 0 && (
-                <button 
+            <div className="px-3 pb-2 mb-1 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+              <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Filter by tags
+              </h3>
+              {localTags.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocalTags([]);
+                    setSearchTags([]);
+                    if (onSearch) {
+                      onSearch(localQuery, []);
+                    }
+                  }}
                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                  onClick={clearAllTags}
                 >
-                  Clear all
+                  Clear all tags
                 </button>
               )}
             </div>
             
-            {sortedGroups.map(letter => (
-              <div key={letter} className="mb-3">
-                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                  {letter}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {groupedTags[letter].map(tag => (
-                    <motion.button
-                      key={tag}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => toggleTag(tag)}
-                      className={cn(
-                        'px-2 py-1 text-xs rounded-full transition-colors',
-                        selectedTags.includes(tag)
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
-                      )}
-                    >
-                      {tag}
-                    </motion.button>
-                  ))}
-                </div>
+            {sortedGroups.length > 0 ? (
+              <div className="pt-1">
+                {sortedGroups.map(group => (
+                  <div key={group} className="mb-2">
+                    <div className="px-3 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-700/50">
+                      {group}
+                    </div>
+                    <div className="py-1">
+                      {groupedTags[group].sort().map(tag => {
+                        const isSelected = localTags.includes(tag);
+                        return (
+                          <motion.button
+                            key={tag}
+                            type="button"
+                            onClick={() => handleTagToggle(tag)}
+                            className={cn(
+                              "flex items-center w-full px-3 py-1.5 text-sm transition-colors",
+                              isSelected
+                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                                : "hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300"
+                            )}
+                            whileHover={{ x: 2 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <div className={cn(
+                              "w-4 h-4 rounded mr-2 flex items-center justify-center",
+                              isSelected 
+                                ? "bg-blue-500 dark:bg-blue-600 text-white" 
+                                : "border border-slate-300 dark:border-slate-600"
+                            )}>
+                              {isSelected && <Check className="w-3 h-3" />}
+                            </div>
+                            {tag}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400 text-center">
+                No tags available
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,51 +1,90 @@
+'use client';
+
 import React from 'react';
-import { Sun, Moon } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
+import { Moon, Sun, Monitor } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  const isDark = theme === 'dark';
-
+  const { theme, setTheme } = useTheme();
+  
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark';
+    setTheme(nextTheme);
+  };
+  
   return (
     <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
       onClick={toggleTheme}
       className={cn(
-        'relative p-2 rounded-lg transition-colors',
-        'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700',
-        'text-slate-900 dark:text-slate-100'
+        "relative p-2 rounded-lg transition-colors",
+        "hover:bg-slate-100 dark:hover:bg-slate-800",
+        "text-slate-500 dark:text-slate-400",
+        "hover:text-slate-700 dark:hover:text-slate-300"
       )}
-      aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      aria-label={`Switch to ${theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark'} mode`}
+      title={`Current theme: ${theme}. Click to switch to ${theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark'} mode`}
     >
-      <div className="relative w-6 h-6">
-        <motion.div
-          initial={false}
-          animate={{
-            opacity: isDark ? 0 : 1,
-            scale: isDark ? 0.5 : 1,
-            rotate: isDark ? -45 : 0,
-          }}
-          transition={{ duration: 0.2 }}
-          className="absolute inset-0"
-        >
-          <Sun className="w-6 h-6" />
-        </motion.div>
-        <motion.div
-          initial={false}
-          animate={{
-            opacity: isDark ? 1 : 0,
-            scale: isDark ? 1 : 0.5,
-            rotate: isDark ? 0 : 45,
-          }}
-          transition={{ duration: 0.2 }}
-          className="absolute inset-0"
-        >
-          <Moon className="w-6 h-6" />
-        </motion.div>
-      </div>
+      <AnimatePresence mode="wait">
+        {theme === 'dark' ? (
+          <motion.div
+            key="dark"
+            initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+            exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Moon className="h-5 w-5" />
+          </motion.div>
+        ) : theme === 'light' ? (
+          <motion.div
+            key="light"
+            initial={{ opacity: 0, rotate: 90, scale: 0.5 }}
+            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+            exit={{ opacity: 0, rotate: -90, scale: 0.5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Sun className="h-5 w-5" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="system"
+            initial={{ opacity: 0, y: -10, scale: 0.5 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Monitor className="h-5 w-5" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Background glow effect */}
+      <AnimatePresence>
+        {theme === 'dark' && (
+          <motion.div
+            key="dark-glow"
+            className="absolute inset-0 rounded-lg bg-blue-500/10 dark:bg-blue-400/10 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+        {theme === 'light' && (
+          <motion.div
+            key="light-glow"
+            className="absolute inset-0 rounded-lg bg-yellow-500/10 dark:bg-yellow-400/10 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </AnimatePresence>
     </motion.button>
   );
 } 

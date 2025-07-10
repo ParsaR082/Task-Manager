@@ -3,7 +3,7 @@
 import React from 'react';
 import { Task, TaskStatus } from '@/lib/types';
 import { TaskCard } from './task-card';
-import { Plus, MoreVertical, Search } from 'lucide-react';
+import { Plus, MoreVertical, Search, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { StrictModeDroppable } from './strict-mode-droppable';
@@ -16,16 +16,34 @@ interface TaskColumnProps {
   searchQuery?: string;
 }
 
-const statusColors: Record<TaskStatus, string> = {
-  [TaskStatus.TODO]: 'border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800/50',
-  [TaskStatus.IN_PROGRESS]: 'border-blue-300 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/20',
-  [TaskStatus.DONE]: 'border-green-300 bg-green-50 dark:border-green-600 dark:bg-green-900/20'
-};
-
-const headerColors: Record<TaskStatus, string> = {
-  [TaskStatus.TODO]: 'text-slate-700 dark:text-slate-300',
-  [TaskStatus.IN_PROGRESS]: 'text-blue-700 dark:text-blue-300',
-  [TaskStatus.DONE]: 'text-green-700 dark:text-green-300'
+const statusColors: Record<TaskStatus, {
+  border: string;
+  bg: string;
+  text: string;
+  icon: string;
+  accent: string;
+}> = {
+  [TaskStatus.TODO]: {
+    border: 'border-slate-200 dark:border-slate-700',
+    bg: 'bg-slate-50/80 dark:bg-slate-800/50',
+    text: 'text-slate-700 dark:text-slate-300',
+    icon: 'text-slate-400 dark:text-slate-500',
+    accent: 'bg-slate-600 dark:bg-slate-400'
+  },
+  [TaskStatus.IN_PROGRESS]: {
+    border: 'border-blue-200 dark:border-blue-800/40',
+    bg: 'bg-blue-50/80 dark:bg-blue-900/20',
+    text: 'text-blue-700 dark:text-blue-300',
+    icon: 'text-blue-400 dark:text-blue-500',
+    accent: 'bg-blue-500 dark:bg-blue-400'
+  },
+  [TaskStatus.DONE]: {
+    border: 'border-green-200 dark:border-green-800/40',
+    bg: 'bg-green-50/80 dark:bg-green-900/20',
+    text: 'text-green-700 dark:text-green-300',
+    icon: 'text-green-400 dark:text-green-500',
+    accent: 'bg-green-500 dark:bg-green-400'
+  }
 };
 
 export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }: TaskColumnProps) {
@@ -38,20 +56,44 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
     >
       {/* Column Header */}
       <motion.div 
-        className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700"
+        className={cn(
+          "flex items-center justify-between p-4 border-b",
+          statusColors[status].border
+        )}
         layout
       >
         <div className="flex items-center gap-3">
-          <motion.h2 
-            className={cn('font-semibold text-lg', headerColors[status])}
-            layout
-          >
-            {title}
-          </motion.h2>
+          <motion.div className="flex items-center gap-2">
+            <motion.div 
+              className={cn(
+                "h-3 w-3 rounded-full",
+                statusColors[status].accent
+              )}
+              animate={{
+                scale: [1, 1.15, 1],
+                opacity: [0.7, 1, 0.7],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <motion.h2 
+              className={cn('font-semibold text-lg', statusColors[status].text)}
+              layout
+            >
+              {title}
+            </motion.h2>
+          </motion.div>
           <motion.span 
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            className="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium px-2 py-1 rounded-full min-w-[24px] text-center"
+            className={cn(
+              "bg-white dark:bg-slate-900 text-sm font-medium px-2.5 py-1 rounded-full min-w-[28px] text-center shadow-sm",
+              statusColors[status].text,
+              statusColors[status].border
+            )}
             layout
           >
             {tasks.length}
@@ -62,7 +104,11 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
           {onAddTask && (
             <motion.button
               onClick={onAddTask}
-              className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+              className={cn(
+                "p-2 rounded-full transition-colors",
+                statusColors[status].icon,
+                "hover:bg-white dark:hover:bg-slate-800"
+              )}
               title="Add new task"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -71,7 +117,11 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
             </motion.button>
           )}
           <motion.button
-            className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+            className={cn(
+              "p-2 rounded-full transition-colors",
+              statusColors[status].icon,
+              "hover:bg-white dark:hover:bg-slate-800"
+            )}
             title="More options"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
@@ -89,9 +139,9 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
             {...provided.droppableProps}
             animate={{
               backgroundColor: snapshot.isDraggingOver 
-                ? 'rgba(59, 130, 246, 0.15)' 
+                ? 'rgba(59, 130, 246, 0.08)' 
                 : 'transparent',
-              scale: snapshot.isDraggingOver ? 1.03 : 1,
+              scale: snapshot.isDraggingOver ? 1.02 : 1,
               transition: { 
                 type: "spring",
                 stiffness: 350,
@@ -99,11 +149,11 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
               }
             }}
             className={cn(
-              'flex-1 p-4 min-h-[200px] relative',
+              'flex-1 p-4 min-h-[200px] relative overflow-y-auto',
               'transition-all duration-200',
-              statusColors[status],
+              statusColors[status].bg,
               snapshot.isDraggingOver && [
-                'ring-2 ring-blue-400 dark:ring-blue-500 ring-opacity-50',
+                'ring-2 ring-blue-400/30 dark:ring-blue-500/30',
                 'border-blue-300 dark:border-blue-600'
               ]
             )}
@@ -114,14 +164,14 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ 
-                    opacity: [0.6, 0.4, 0.6],
+                    opacity: [0.3, 0.15, 0.3],
                     scale: 1,
                   }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{
                     opacity: {
                       repeat: Infinity,
-                      duration: 1.5
+                      duration: 2
                     },
                     scale: {
                       type: "spring",
@@ -129,14 +179,21 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
                       damping: 20
                     }
                   }}
-                  className="absolute inset-0 bg-blue-400/15 dark:bg-blue-500/15 rounded-lg pointer-events-none"
+                  className={cn(
+                    "absolute inset-0 pointer-events-none rounded-b-2xl",
+                    status === TaskStatus.TODO 
+                      ? "bg-slate-400/10 dark:bg-slate-500/10" 
+                      : status === TaskStatus.IN_PROGRESS
+                        ? "bg-blue-400/10 dark:bg-blue-500/10"
+                        : "bg-green-400/10 dark:bg-green-500/10"
+                  )}
                 />
               )}
             </AnimatePresence>
 
             {/* Tasks List */}
             <motion.div 
-              className="space-y-3 relative"
+              className="space-y-4 relative"
               layout
             >
               <AnimatePresence mode="popLayout">
@@ -182,8 +239,11 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-3">
-                        <Search className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+                      <div className={cn(
+                        "w-12 h-12 rounded-full flex items-center justify-center mb-3",
+                        "bg-white/80 dark:bg-slate-800/80 shadow-sm"
+                      )}>
+                        <Search className={cn("w-5 h-5", statusColors[status].icon)} />
                       </div>
                       <p className="text-sm text-slate-500 dark:text-slate-400">
                         No matching tasks in {title.toLowerCase()}
@@ -192,7 +252,10 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
                   ) : (
                     <>
                       <motion.div 
-                        className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-3"
+                        className={cn(
+                          "w-12 h-12 rounded-full flex items-center justify-center mb-3",
+                          "bg-white/80 dark:bg-slate-800/80 shadow-sm"
+                        )}
                         whileHover={{ scale: 1.15, rotate: 180 }}
                         animate={{
                           boxShadow: [
@@ -206,7 +269,7 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
                           boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
                         }}
                       >
-                        <Plus className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+                        <Plus className={cn("w-5 h-5", statusColors[status].icon)} />
                       </motion.div>
                       <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
                         No tasks in {title.toLowerCase()}
@@ -214,7 +277,11 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
                       {onAddTask && (
                         <motion.button
                           onClick={onAddTask}
-                          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                          className={cn(
+                            "text-sm font-medium px-3 py-1.5 rounded-full",
+                            "bg-white dark:bg-slate-800 shadow-sm",
+                            statusColors[status].text
+                          )}
                           whileHover={{ scale: 1.05, y: -2 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -251,25 +318,34 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
                     }
                   }}
                   className={cn(
-                    'absolute inset-4 border-2 border-dashed rounded-lg',
+                    'absolute inset-4 border-2 border-dashed rounded-xl',
                     'flex items-center justify-center',
-                    'border-blue-300 dark:border-blue-600',
-                    'bg-blue-50/80 dark:bg-blue-900/30'
+                    status === TaskStatus.TODO 
+                      ? "border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/30" 
+                      : status === TaskStatus.IN_PROGRESS
+                        ? "border-blue-300 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-900/30"
+                        : "border-green-300 dark:border-green-600 bg-green-50/50 dark:bg-green-900/30"
                   )}
                 >
-                  <motion.p 
-                    className="text-blue-600 dark:text-blue-400 font-medium flex items-center gap-2"
+                  <motion.div 
+                    className={cn(
+                      "flex flex-col items-center gap-2 px-4 py-2 rounded-lg",
+                      "bg-white/90 dark:bg-slate-800/90 shadow-sm"
+                    )}
                     animate={{
-                      scale: [1, 1.08, 1],
+                      y: [0, -4, 0],
                     }}
                     transition={{
                       repeat: Infinity,
-                      duration: 1.5,
+                      duration: 2,
                       ease: "easeInOut"
                     }}
                   >
-                    Drop here
-                  </motion.p>
+                    <ChevronDown className={cn("w-5 h-5", statusColors[status].text)} />
+                    <p className={cn("text-sm font-medium", statusColors[status].text)}>
+                      Drop here
+                    </p>
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>

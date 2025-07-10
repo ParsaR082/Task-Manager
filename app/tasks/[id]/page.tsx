@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { motion } from 'framer-motion';
 import { Task, TaskStatus } from '@/lib/types';
-import { hardcodedTasks } from '@/lib/data';
 import { 
   Calendar, 
   Clock, 
@@ -17,6 +16,82 @@ import {
   Trash2
 } from 'lucide-react';
 import Link from 'next/link';
+
+// Sample tasks data (same as in calendar/page.tsx)
+const tasks: Task[] = [
+  {
+    id: '1',
+    title: 'Design new dashboard layout',
+    description: 'Create wireframes and mockups for the new admin dashboard layout',
+    status: TaskStatus.TODO,
+    priority: 'high',
+    dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+    tags: ['Design', 'UI/UX']
+  },
+  {
+    id: '2',
+    title: 'Implement authentication flow',
+    description: 'Set up user authentication with JWT and refresh tokens',
+    status: TaskStatus.IN_PROGRESS,
+    priority: 'high',
+    dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day from now
+    tags: ['Development', 'Security']
+  },
+  {
+    id: '3',
+    title: 'Write API documentation',
+    description: 'Document all API endpoints with examples and response schemas',
+    status: TaskStatus.TODO,
+    priority: 'medium',
+    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
+    tags: ['Documentation', 'API']
+  },
+  {
+    id: '4',
+    title: 'Set up CI/CD pipeline',
+    description: 'Configure GitHub Actions for automated testing and deployment',
+    status: TaskStatus.IN_PROGRESS,
+    priority: 'medium',
+    dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+    tags: ['DevOps', 'Automation']
+  },
+  {
+    id: '5',
+    title: 'Optimize database queries',
+    description: 'Improve performance of slow database queries',
+    status: TaskStatus.DONE,
+    priority: 'high',
+    dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    tags: ['Database', 'Performance']
+  },
+  {
+    id: '6',
+    title: 'User testing session',
+    description: 'Conduct user testing with 5 participants',
+    status: TaskStatus.TODO,
+    priority: 'low',
+    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+    tags: ['Testing', 'User Research']
+  },
+  {
+    id: '7',
+    title: 'Weekly team meeting',
+    description: 'Discuss project progress and roadmap',
+    status: TaskStatus.DONE,
+    priority: 'medium',
+    dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    tags: ['Meeting', 'Team']
+  },
+  {
+    id: '8',
+    title: 'Update dependencies',
+    description: 'Update all npm packages to latest versions',
+    status: TaskStatus.DONE,
+    priority: 'low',
+    dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    tags: ['Maintenance', 'Dependencies']
+  }
+];
 
 export default function TaskDetailsPage() {
   const router = useRouter();
@@ -30,9 +105,9 @@ export default function TaskDetailsPage() {
       setLoading(true);
       try {
         // In a real app, you would fetch from an API
-        // For now, we'll use the hardcoded tasks
+        // For now, we'll use the sample tasks
         setTimeout(() => {
-          const foundTask = hardcodedTasks.find(t => t.id === params.id);
+          const foundTask = tasks.find(t => t.id === params.id);
           setTask(foundTask || null);
           setLoading(false);
         }, 500);

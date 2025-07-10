@@ -3,142 +3,113 @@
 import React from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { TaskBoard } from '@/components/task-board';
+import { Task, TaskStatus } from '@/lib/types';
 import { AnalyticsSection } from '@/components/analytics-section';
-import { hardcodedTasks, getTaskStats } from '@/lib/data';
-import { TaskStatus } from '@/lib/types';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/dashboard/tabs';
-import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { Bell, CheckCircle, Clock, ListTodo } from 'lucide-react';
 
-const statCards = [
+// Sample tasks data
+const tasks: Task[] = [
   {
-    title: 'Total Tasks',
-    icon: ListTodo,
-    value: 0,
-    gradient: { from: 'from-blue-500', to: 'to-blue-600' }
+    id: '1',
+    title: 'Design new dashboard layout',
+    description: 'Create wireframes and mockups for the new admin dashboard layout',
+    status: TaskStatus.TODO,
+    priority: 'high',
+    dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+    tags: ['Design', 'UI/UX']
   },
   {
-    title: 'Completed',
-    icon: CheckCircle,
-    value: 0,
-    gradient: { from: 'from-green-500', to: 'to-green-600' }
+    id: '2',
+    title: 'Implement authentication flow',
+    description: 'Set up user authentication with JWT and refresh tokens',
+    status: TaskStatus.IN_PROGRESS,
+    priority: 'high',
+    dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day from now
+    tags: ['Development', 'Security']
   },
   {
-    title: 'In Progress',
-    icon: Clock,
-    value: 0,
-    gradient: { from: 'from-yellow-500', to: 'to-yellow-600' }
+    id: '3',
+    title: 'Write API documentation',
+    description: 'Document all API endpoints with examples and response schemas',
+    status: TaskStatus.TODO,
+    priority: 'medium',
+    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
+    tags: ['Documentation', 'API']
   },
   {
-    title: 'Overdue',
-    icon: Bell,
-    value: 0,
-    gradient: { from: 'from-red-500', to: 'to-red-600' }
+    id: '4',
+    title: 'Set up CI/CD pipeline',
+    description: 'Configure GitHub Actions for automated testing and deployment',
+    status: TaskStatus.IN_PROGRESS,
+    priority: 'medium',
+    dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+    tags: ['DevOps', 'Automation']
+  },
+  {
+    id: '5',
+    title: 'Optimize database queries',
+    description: 'Improve performance of slow database queries',
+    status: TaskStatus.DONE,
+    priority: 'high',
+    dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    tags: ['Database', 'Performance']
+  },
+  {
+    id: '6',
+    title: 'User testing session',
+    description: 'Conduct user testing with 5 participants',
+    status: TaskStatus.TODO,
+    priority: 'low',
+    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+    tags: ['Testing', 'User Research']
+  },
+  {
+    id: '7',
+    title: 'Weekly team meeting',
+    description: 'Discuss project progress and roadmap',
+    status: TaskStatus.DONE,
+    priority: 'medium',
+    dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    tags: ['Meeting', 'Team']
+  },
+  {
+    id: '8',
+    title: 'Update dependencies',
+    description: 'Update all npm packages to latest versions',
+    status: TaskStatus.DONE,
+    priority: 'low',
+    dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    tags: ['Maintenance', 'Dependencies']
   }
 ];
 
-export default function Dashboard() {
-  const [activeTab, setActiveTab] = React.useState('board');
-  const stats = React.useMemo(() => getTaskStats(), []);
-
-  // Update stat cards with actual values
-  const updatedStatCards = React.useMemo(() => [
-    { ...statCards[0], value: stats.total },
-    { ...statCards[1], value: stats.completed },
-    { ...statCards[2], value: stats.inProgress },
-    { ...statCards[3], value: stats.overdue }
-  ], [stats]);
-
+export default function Home() {
   const handleTaskMove = (taskId: string, newStatus: TaskStatus) => {
-    // In a real app, this would update the database
-    console.debug(`Moved task ${taskId} to ${newStatus}`);
+    console.log(`Task ${taskId} moved to ${newStatus}`);
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {updatedStatCards.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <motion.div
-                key={stat.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card
-                  gradient
-                  from={stat.gradient.from}
-                  to={stat.gradient.to}
-                  className="relative overflow-hidden"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-white/80">
-                          {stat.title}
-                        </p>
-                        <p className="text-3xl font-bold mt-2">
-                          {stat.value}
-                        </p>
-                      </div>
-                      <Icon className="w-8 h-8 opacity-80" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Tabs Interface */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="board">Board</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          </TabsList>
-
-          <div className="mt-6">
-            <TabsContent value="board">
-              <TaskBoard 
-                tasks={hardcodedTasks} 
-                onTaskMove={handleTaskMove}
-              />
-            </TabsContent>
-
-            <TabsContent value="analytics">
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-8">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                    Analytics & Insights
-                  </h2>
-                  <p className="text-slate-600 dark:text-slate-400 mt-1">
-                    Track your team's performance and project progress
-                  </p>
-                </div>
-                <AnalyticsSection />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="notifications">
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-8">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                    Notifications
-                  </h2>
-                  <p className="text-slate-600 dark:text-slate-400 mt-1">
-                    Stay updated with your team's activities
-                  </p>
-                </div>
-                {/* Notifications content will go here */}
-              </div>
-            </TabsContent>
-          </div>
-        </Tabs>
+      <div className="flex flex-col space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <AnalyticsSection tasks={tasks} />
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex-1"
+        >
+          <TaskBoard 
+            tasks={tasks} 
+            onTaskMove={handleTaskMove} 
+          />
+        </motion.div>
       </div>
     </DashboardLayout>
   );

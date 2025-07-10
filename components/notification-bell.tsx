@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -9,31 +11,76 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ count = 0, onClick }: NotificationBellProps) {
+  const [isHovering, setIsHovering] = useState(false);
+  
   return (
     <motion.button
+      className={cn(
+        "relative p-2 rounded-lg transition-colors",
+        "hover:bg-slate-100 dark:hover:bg-slate-800",
+        "text-slate-500 dark:text-slate-400",
+        "hover:text-slate-700 dark:hover:text-slate-300"
+      )}
+      onClick={onClick}
+      onHoverStart={() => setIsHovering(true)}
+      onHoverEnd={() => setIsHovering(false)}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      onClick={onClick}
-      className={cn(
-        'relative p-2 rounded-lg transition-colors',
-        'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700',
-        'text-slate-900 dark:text-slate-100'
-      )}
-      aria-label={`${count} notifications`}
+      aria-label={`Notifications ${count > 0 ? `(${count} unread)` : ''}`}
+      title={`Notifications ${count > 0 ? `(${count} unread)` : ''}`}
     >
-      <Bell className="w-6 h-6" />
+      <Bell className="h-5 w-5" />
+      
+      {/* Notification Count Badge */}
       <AnimatePresence>
         {count > 0 && (
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-medium"
+            key="count"
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.5, opacity: 0 }}
+            className={cn(
+              "absolute -top-1 -right-1 flex items-center justify-center",
+              "min-w-[18px] h-[18px] rounded-full text-xs font-medium",
+              "bg-red-500 text-white shadow-sm"
+            )}
           >
-            {count}
+            {count > 9 ? '9+' : count}
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* Ring Animation */}
+      <AnimatePresence>
+        {isHovering && count > 0 && (
+          <motion.div
+            key="ring"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ 
+              scale: [0.8, 1.2, 1.5],
+              opacity: [0.8, 0.5, 0]
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, repeat: 0 }}
+            className="absolute inset-0 rounded-full bg-red-500/20 pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+      
+      {/* Shake Animation */}
+      {count > 0 && (
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          animate={isHovering ? {
+            rotate: [0, -5, 5, -5, 5, 0],
+            transition: { 
+              duration: 0.5,
+              repeat: 0,
+              ease: "easeInOut"
+            }
+          } : {}}
+        />
+      )}
     </motion.button>
   );
 } 

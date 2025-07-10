@@ -1,66 +1,122 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+/**
+ * Combines multiple class names and resolves Tailwind CSS conflicts
+ * using clsx for conditional classes and tailwind-merge to handle conflicts
+ */
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
 }
 
-export function setThemeVariables(isDark: boolean) {
-  const root = document.documentElement;
-  const variables = {
-    '--primary': isDark ? '#6366f1' : '#4f46e5',
-    '--card-shadow': isDark ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)',
-    '--transition': 'all 0.2s ease',
-    '--background': isDark ? '#0f172a' : '#ffffff',
-    '--foreground': isDark ? '#f8fafc' : '#0f172a',
-    '--muted': isDark ? '#334155' : '#f1f5f9',
-    '--muted-foreground': isDark ? '#94a3b8' : '#64748b',
-    '--border': isDark ? '#1e293b' : '#e2e8f0',
-    '--ring': isDark ? '#6366f1' : '#4f46e5',
-  };
-
-  Object.entries(variables).forEach(([key, value]) => {
-    root.style.setProperty(key, value);
+/**
+ * Format a date to a readable string
+ */
+export function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
   });
 }
 
-export function debounce<T extends (...args: any[]) => void>(
+/**
+ * Format a date to a time string
+ */
+export function formatTime(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+/**
+ * Check if a date is in the past
+ */
+export function isDatePast(date: Date | string): boolean {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  return d < now;
+}
+
+/**
+ * Check if a date is today
+ */
+export function isDateToday(date: Date | string): boolean {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  return d.toDateString() === now.toDateString();
+}
+
+/**
+ * Generate a random ID
+ */
+export function generateId(): string {
+  return Math.random().toString(36).substring(2, 15);
+}
+
+/**
+ * Truncate a string to a specified length
+ */
+export function truncate(str: string, length: number): string {
+  if (str.length <= length) {
+    return str;
+  }
+  return str.slice(0, length) + '...';
+}
+
+/**
+ * Debounce a function
+ */
+export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
-
-  return function executedFunction(...args: Parameters<T>) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  
+  return function(...args: Parameters<T>) {
     const later = () => {
-      clearTimeout(timeout);
+      timeout = null;
       func(...args);
     };
-
-    clearTimeout(timeout);
+    
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
     timeout = setTimeout(later, wait);
   };
 }
 
-export function formatDate(date: string | Date): string {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
+/**
+ * Group an array of objects by a key
+ */
+export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
+  return array.reduce((result, item) => {
+    const groupKey = String(item[key]);
+    if (!result[groupKey]) {
+      result[groupKey] = [];
+    }
+    result[groupKey].push(item);
+    return result;
+  }, {} as Record<string, T[]>);
+}
+
+/**
+ * Sort an array of objects by a key
+ */
+export function sortBy<T>(array: T[], key: keyof T, direction: 'asc' | 'desc' = 'asc'): T[] {
+  return [...array].sort((a, b) => {
+    const valueA = a[key];
+    const valueB = b[key];
+    
+    if (valueA < valueB) {
+      return direction === 'asc' ? -1 : 1;
+    }
+    if (valueA > valueB) {
+      return direction === 'asc' ? 1 : -1;
+    }
+    return 0;
   });
-}
-
-export function calculateDaysLeft(dueDate: string): number {
-  const today = new Date();
-  const due = new Date(dueDate);
-  const diffTime = due.getTime() - today.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-}
-
-// Debug utilities
-export function debugLog(
-  component: string,
-  action: string,
-  details?: Record<string, unknown>
-) {
-  console.debug(`[${component}] ${action}:`, details);
 } 
