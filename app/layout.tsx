@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/lib/theme-context';
 import { ProjectProvider } from '@/lib/project-context';
+import { TaskProvider } from '@/lib/task-context';
 import { ToastProvider } from '@/components/ui/toast';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -23,7 +24,9 @@ export default function RootLayout({
         <ThemeProvider>
           <ToastProvider>
             <ProjectProvider>
-              {children}
+              <TaskProvider>
+                {children}
+              </TaskProvider>
             </ProjectProvider>
           </ToastProvider>
         </ThemeProvider>

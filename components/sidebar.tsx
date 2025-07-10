@@ -22,7 +22,9 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Project } from '@/lib/types';
 import { useProjects } from '@/lib/project-context';
+import { useTasks } from '@/lib/task-context';
 import { ProjectModal } from '@/components/ui/project-modal';
+import { TaskModal } from '@/components/ui/task-modal';
 import { useToast } from '@/components/ui/toast';
 
 interface SidebarProps {
@@ -37,6 +39,7 @@ export function Sidebar({
   const [localCollapsed, setLocalCollapsed] = useState(collapsed);
   const pathname = usePathname();
   const { projects, selectedProjectId, selectProject, isModalOpen, openModal, closeModal, addProject, isLoading } = useProjects();
+  const { openTaskModal, closeTaskModal, isTaskModalOpen, addTask, isLoading: isTaskLoading } = useTasks();
   const { showToast } = useToast();
 
   const navigationItems = [
@@ -368,9 +371,36 @@ export function Sidebar({
                   )}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
+                  onClick={openTaskModal}
                 >
                   <Plus className="w-5 h-5" />
                   <span>Create Task</span>
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Collapsed Quick Actions */}
+          <AnimatePresence>
+            {localCollapsed && (
+              <motion.div 
+                className="mt-4 flex flex-col items-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <motion.button
+                  className={cn(
+                    "p-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600",
+                    "text-white shadow-md hover:shadow-lg transition-all duration-200"
+                  )}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={openTaskModal}
+                  title="Create Task"
+                >
+                  <Plus className="w-5 h-5" />
                 </motion.button>
               </motion.div>
             )}
@@ -434,6 +464,14 @@ export function Sidebar({
         onClose={closeModal}
         onSave={handleAddProject}
         isLoading={isLoading}
+      />
+
+      {/* Task Modal */}
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={closeTaskModal}
+        onSave={addTask}
+        isLoading={isTaskLoading}
       />
     </>
   );
