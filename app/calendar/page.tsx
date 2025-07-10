@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Task, TaskStatus } from '@/lib/types';
@@ -94,20 +94,22 @@ export default function CalendarPage() {
   
   const router = useRouter();
 
-  // Group tasks by date
-  const tasksByDate = React.useMemo(() => {
-    const grouped: Record<string, Task[]> = {};
-    
-    tasks.forEach(task => {
-      // Format the date as YYYY-MM-DD for consistent comparison
-      const dateKey = new Date(task.dueDate).toISOString().split('T')[0];
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = [];
+  const [tasksByDate, setTasksByDate] = useState<Record<string, Task[]>>({});
+
+  // Group tasks by date when component mounts or tasks change
+  useEffect(() => {
+    const groupedTasks = tasks.reduce((acc: Record<string, Task[]>, task) => {
+      // Ensure task.dueDate is a valid date string
+      if (task.dueDate) {
+        const dateKey = new Date(task.dueDate).toISOString().split('T')[0];
+        if (!acc[dateKey]) {
+          acc[dateKey] = [];
+        }
+        acc[dateKey].push(task);
       }
-      grouped[dateKey].push(task);
-    });
-    
-    return grouped;
+      return acc;
+    }, {});
+    setTasksByDate(groupedTasks);
   }, []);
   
   // Get tasks for selected date, filtered by search query
@@ -126,6 +128,17 @@ export default function CalendarPage() {
     );
   }, [selectedDate, tasksByDate, searchQuery]);
 
+  // Get task priority color
+  const getTaskPriorityColor = (tasks: Task[]) => {
+    if (tasks.some(task => task.priority === 'high')) {
+      return 'bg-red-500/20 dark:bg-red-500/30 hover:bg-red-500/30 dark:hover:bg-red-500/40';
+    }
+    if (tasks.some(task => task.priority === 'medium')) {
+      return 'bg-yellow-500/20 dark:bg-yellow-500/30 hover:bg-yellow-500/30 dark:hover:bg-yellow-500/40';
+    }
+    return 'bg-blue-500/20 dark:bg-blue-500/30 hover:bg-blue-500/30 dark:hover:bg-blue-500/40';
+  };
+
   // Custom day renderer to highlight dates with tasks
   const renderDayContents = (day: number, date?: Date) => {
     if (!date) return <span>{day}</span>;
@@ -139,20 +152,41 @@ export default function CalendarPage() {
     const isToday = new Date().toISOString().split('T')[0] === dateKey;
     
     return (
-      <div className="relative flex items-center justify-center">
-        <span className={isToday ? 'font-bold' : ''}>{day}</span>
-        {hasTask && (
-          <span className={`task-indicator ${
-            tasksByDate[dateKey].some(task => task.priority === 'high') 
-              ? 'bg-red-500 dark:bg-red-600' 
-              : tasksByDate[dateKey].some(task => task.priority === 'medium')
-                ? 'bg-yellow-500 dark:bg-yellow-600'
-                : 'bg-blue-500 dark:bg-blue-600'
-          }`}>
-            {taskCount}
-          </span>
+      <motion.div 
+        className={cn(
+          "relative flex items-center justify-center w-full h-full rounded-lg",
+          hasTask && getTaskPriorityColor(tasksByDate[dateKey]),
+          isToday && "border-2 border-blue-500 dark:border-blue-400"
         )}
-      </div>
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      >
+        <span className={cn(
+          "relative z-10 font-medium",
+          hasTask && "text-slate-900 dark:text-slate-100",
+          !hasTask && "text-slate-600 dark:text-slate-400"
+        )}>
+          {day}
+        </span>
+        {hasTask && (
+          <motion.span 
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className={cn(
+              "absolute bottom-1 left-1/2 -translate-x-1/2",
+              "text-[10px] font-medium px-1.5 rounded-full min-w-[18px] text-center",
+              tasksByDate[dateKey].some(task => task.priority === 'high') 
+                ? 'text-red-700 dark:text-red-300' 
+                : tasksByDate[dateKey].some(task => task.priority === 'medium')
+                  ? 'text-yellow-700 dark:text-yellow-300'
+                  : 'text-blue-700 dark:text-blue-300'
+            )}
+          >
+            {taskCount}
+          </motion.span>
+        )}
+      </motion.div>
     );
   };
   
@@ -189,13 +223,15 @@ export default function CalendarPage() {
           <div className="flex flex-col lg:flex-row">
             {/* Calendar Section */}
             <div className="p-6 lg:w-1/2 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-700">
-              <div className="calendar-wrapper max-w-md mx-auto">
+              <div className="calendar-wrapper w-full">
                 <DatePicker
                   selected={selectedDate}
                   onChange={(date: Date | null) => date && setSelectedDate(date)}
                   inline
                   renderDayContents={renderDayContents}
-                  calendarClassName="w-full"
+                  calendarClassName="!w-full"
+                  className="w-full"
+                  fixedHeight
                   renderCustomHeader={({
                     date,
                     decreaseMonth,
@@ -203,35 +239,57 @@ export default function CalendarPage() {
                     prevMonthButtonDisabled,
                     nextMonthButtonDisabled,
                   }) => (
-                    <div className="flex items-center justify-between px-2 py-2">
+                    <motion.div 
+                      className="flex items-center justify-between px-4 py-4"
+                      initial={false}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
                       <motion.button
                         onClick={decreaseMonth}
                         disabled={prevMonthButtonDisabled}
-                        className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors duration-200"
+                        className={cn(
+                          "p-2 rounded-lg transition-all duration-200",
+                          "hover:bg-slate-100 dark:hover:bg-slate-700",
+                          "disabled:opacity-50 disabled:cursor-not-allowed",
+                          "focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                        )}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
                       >
                         <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                       </motion.button>
+
                       <motion.div 
-                        className="text-lg font-semibold text-slate-900 dark:text-slate-100"
+                        className="flex items-center gap-2"
                         initial={false}
                         animate={{ opacity: [0.8, 1] }}
                         transition={{ duration: 0.3 }}
                         key={`${date.getMonth()}-${date.getFullYear()}`}
                       >
-                        {date.toLocaleString('default', { month: 'long' })} {date.getFullYear()}
+                        <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                          {date.toLocaleString('default', { month: 'long' })}
+                        </span>
+                        <span className="text-lg font-normal text-slate-600 dark:text-slate-400">
+                          {date.getFullYear()}
+                        </span>
                       </motion.div>
+
                       <motion.button
                         onClick={increaseMonth}
                         disabled={nextMonthButtonDisabled}
-                        className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors duration-200"
+                        className={cn(
+                          "p-2 rounded-lg transition-all duration-200",
+                          "hover:bg-slate-100 dark:hover:bg-slate-700",
+                          "disabled:opacity-50 disabled:cursor-not-allowed",
+                          "focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                        )}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
                       >
                         <ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                       </motion.button>
-                    </div>
+                    </motion.div>
                   )}
                 />
               </div>
