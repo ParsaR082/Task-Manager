@@ -213,7 +213,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            style={{ transformStyle: "preserve-3d", translateZ: 20 }}
+            style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
           >
             View details <ArrowRight className="w-3.5 h-3.5 ml-0.5 transition-transform group-hover:translate-x-0.5" />
           </motion.div>
@@ -238,7 +238,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
                 }
               }}
               whileTap={{ scale: 0.9 }}
-              style={{ transformStyle: "preserve-3d", translateZ: 20 }}
+              style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
             >
               <GripVertical className="w-4 h-4" />
             </motion.div>
@@ -249,7 +249,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
             className="relative z-10" 
             style={{ 
               transformStyle: "preserve-3d",
-              translateZ: 10 
+              transform: `translateZ(10px)`
             }}
           >
             {/* Status & Priority Section */}
@@ -260,7 +260,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2 }}
-                  style={{ transformStyle: "preserve-3d", translateZ: 15 }}
+                  style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
                 >
                   <CheckCircle className="w-3.5 h-3.5 mr-1" />
                   Completed
@@ -273,7 +273,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
                   )}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  style={{ transformStyle: "preserve-3d", translateZ: 15 }}
+                  style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
                 >
                   {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
                 </motion.span>
@@ -285,7 +285,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2 }}
-                  style={{ transformStyle: "preserve-3d", translateZ: 15 }}
+                  style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
                 >
                   <Clock className="w-3.5 h-3.5 mr-1" />
                   Overdue
@@ -302,7 +302,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
                   : "text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400"
               )}
               layout
-              style={{ transformStyle: "preserve-3d", translateZ: 20 }}
+              style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
             >
               {task.title}
             </motion.h3>
@@ -316,7 +316,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
                   : "text-slate-600 dark:text-slate-400"
               )}
               layout
-              style={{ transformStyle: "preserve-3d", translateZ: 15 }}
+              style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
             >
               {task.description}
             </motion.p>
@@ -326,7 +326,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
               <motion.div 
                 className="flex flex-wrap gap-1.5 mb-4"
                 layout
-                style={{ transformStyle: "preserve-3d", translateZ: 15 }}
+                style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
               >
                 {task.tags.map((tag, index) => (
                   <motion.span
@@ -342,7 +342,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.05 }}
                     whileHover={{ scale: 1.05 }}
-                    style={{ transformStyle: "preserve-3d", translateZ: 20 }}
+                    style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
                   >
                     <Tag className="w-3 h-3 mr-1.5 opacity-70" />
                     {tag}
@@ -355,7 +355,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
             <motion.div 
               className="flex items-center justify-between text-sm"
               layout
-              style={{ transformStyle: "preserve-3d", translateZ: 15 }}
+              style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
             >
               <motion.div 
                 className={cn(
@@ -370,7 +370,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
                 )}
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                style={{ transformStyle: "preserve-3d", translateZ: 20 }}
+                style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
               >
                 <Calendar className="w-3.5 h-3.5 mr-1.5 opacity-80" />
                 <span className={cn(
