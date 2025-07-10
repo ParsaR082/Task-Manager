@@ -5,6 +5,7 @@ import { Task, TaskStatus, Project } from '@/lib/types';
 import { Sidebar } from './sidebar';
 import { TaskBoard } from './task-board';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useProjects } from '@/lib/project-context';
 
 interface ProjectTaskBoardProps {
   tasks: Task[];
@@ -13,13 +14,13 @@ interface ProjectTaskBoardProps {
 }
 
 export function ProjectTaskBoard({ tasks, projects, onTaskMove }: ProjectTaskBoardProps) {
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { selectedProjectId } = useProjects();
 
   // Listen for the custom event to clear project filter
   useEffect(() => {
     const handleClearProjectFilter = () => {
-      setSelectedProjectId(null);
+      // This is now handled by the project context
     };
 
     window.addEventListener('clearProjectFilter', handleClearProjectFilter);
@@ -28,20 +29,6 @@ export function ProjectTaskBoard({ tasks, projects, onTaskMove }: ProjectTaskBoa
       window.removeEventListener('clearProjectFilter', handleClearProjectFilter);
     };
   }, []);
-
-  // Generate projects if not provided
-  const availableProjects: Project[] = projects || [
-    { id: 'project-1', name: 'Website Redesign', color: 'bg-blue-500', tasksCount: 0 },
-    { id: 'project-2', name: 'Mobile App', color: 'bg-green-500', tasksCount: 0 },
-    { id: 'project-3', name: 'Marketing Campaign', color: 'bg-purple-500', tasksCount: 0 },
-    { id: 'project-4', name: 'API Development', color: 'bg-orange-500', tasksCount: 0 },
-  ];
-
-  // Count tasks for each project
-  const projectsWithTaskCounts = availableProjects.map(project => {
-    const taskCount = tasks.filter(task => task.projectId === project.id).length;
-    return { ...project, tasksCount: taskCount };
-  });
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden">
@@ -72,9 +59,6 @@ export function ProjectTaskBoard({ tasks, projects, onTaskMove }: ProjectTaskBoa
           <Sidebar 
             collapsed={sidebarCollapsed} 
             onCollapsedChange={setSidebarCollapsed}
-            projects={projectsWithTaskCounts}
-            selectedProjectId={selectedProjectId}
-            onProjectSelect={setSelectedProjectId}
           />
         </motion.div>
       </AnimatePresence>
