@@ -157,6 +157,8 @@
   @apply text-slate-600 dark:text-slate-400 flex-1 text-center p-2 m-0.5
   hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200
   rounded-lg cursor-pointer;
+  position: relative;
+  height: 36px;
 }
 
 .react-datepicker__day--selected {
@@ -173,4 +175,24 @@
 
 .react-datepicker__header {
   @apply bg-transparent border-0 pb-3;
+}
+
+/* Task indicator badge styles */
+.react-datepicker__day .task-indicator-badge {
+  @apply absolute -bottom-1 left-1/2 transform -translate-x-1/2;
+  @apply w-5 h-5 flex items-center justify-center;
+  @apply text-[10px] font-bold text-white rounded-full;
+  @apply shadow-sm;
+}
+
+.task-indicator-badge.priority-low {
+  @apply bg-blue-500 dark:bg-blue-600;
+}
+
+.task-indicator-badge.priority-medium {
+  @apply bg-yellow-500 dark:bg-yellow-600;
+}
+
+.task-indicator-badge.priority-high {
+  @apply bg-red-500 dark:bg-red-600;
 }

@@ -52,33 +52,52 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
     );
   }, [selectedDate, tasksByDate, searchQuery]);
   
+  // Priority color mapping for calendar indicators
+  const calendarPriorityColors = {
+    low: 'bg-blue-500 dark:bg-blue-600',
+    medium: 'bg-yellow-500 dark:bg-yellow-600',
+    high: 'bg-red-500 dark:bg-red-600'
+  };
+  
+  // Get highest priority from a list of tasks
+  const getHighestPriority = (taskList: Task[]): 'high' | 'medium' | 'low' => {
+    if (taskList.some(task => task.priority === 'high')) return 'high';
+    if (taskList.some(task => task.priority === 'medium')) return 'medium';
+    return 'low';
+  };
+  
   // Custom day renderer to highlight dates with tasks
   const renderDayContents = (day: number, date?: Date) => {
     if (!date) return <span>{day}</span>;
     
     const dateKey = date.toISOString().split('T')[0];
-    const hasTask = tasksByDate[dateKey] && tasksByDate[dateKey].length > 0;
-    const taskCount = hasTask ? tasksByDate[dateKey].length : 0;
+    const tasksForDay = tasksByDate[dateKey] || [];
+    const hasTask = tasksForDay.length > 0;
+    
+    if (!hasTask) {
+      return <span>{day}</span>;
+    }
+    
+    // Get highest priority for this day
+    const highestPriority = getHighestPriority(tasksForDay);
+    const taskCount = tasksForDay.length;
     
     return (
       <div className="relative flex items-center justify-center">
         <span>{day}</span>
-        {hasTask && (
-          <span className={`task-indicator ${
-            tasksByDate[dateKey].some(task => task.priority === 'high') 
-              ? 'bg-red-500 dark:bg-red-600' 
-              : tasksByDate[dateKey].some(task => task.priority === 'medium')
-                ? 'bg-yellow-500 dark:bg-yellow-600'
-                : 'bg-blue-500 dark:bg-blue-600'
-          }`}>
-            {taskCount}
-          </span>
-        )}
+        <motion.span 
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className={`task-indicator-badge priority-${highestPriority}`}
+        >
+          {taskCount}
+        </motion.span>
       </div>
     );
   };
   
-  // Priority color mapping
+  // Priority color mapping for task cards
   const priorityColors = {
     low: 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900/30 dark:border-blue-800/50 dark:text-blue-300',
     medium: 'bg-yellow-100 border-yellow-300 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-800/50 dark:text-yellow-300',

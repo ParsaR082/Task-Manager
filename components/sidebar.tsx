@@ -42,9 +42,7 @@ export function Sidebar({
 
   const navigationItems = [
     { icon: Home, label: 'Dashboard', href: '/', active: pathname === '/' },
-    { icon: CheckSquare, label: 'My Tasks', href: '/tasks', active: pathname === '/tasks' },
     { icon: Calendar, label: 'Calendar', href: '/calendar', active: pathname === '/calendar' },
-    { icon: Users, label: 'Team', href: '/team', active: pathname === '/team' },
   ];
 
   // Default projects if none provided
@@ -234,7 +232,9 @@ export function Sidebar({
                         ? "text-blue-600 dark:text-blue-300"
                         : "text-slate-700 dark:text-slate-300"
                     )}>
-                      All Projects
+                      All Projects <span className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full ml-1">
+                        {projectItems.reduce((sum, project) => sum + project.tasksCount, 0)}
+                      </span>
                     </p>
                   </div>
                   <motion.span 
@@ -247,6 +247,7 @@ export function Sidebar({
                     )}
                     initial={{ scale: 0.8 }}
                     whileHover={{ scale: 1.1 }}
+                    style={{ display: "none" }} /* Hide this since we're showing count inline */
                   >
                     {projectItems.reduce((sum, project) => sum + project.tasksCount, 0)}
                   </motion.span>
@@ -284,7 +285,9 @@ export function Sidebar({
                           ? "text-blue-600 dark:text-blue-300"
                           : "text-slate-700 dark:text-slate-300"
                       )}>
-                        {project.name}
+                        {project.name} <span className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full ml-1">
+                          {project.tasksCount}
+                        </span>
                       </p>
                     </div>
                     <motion.span 
@@ -297,6 +300,7 @@ export function Sidebar({
                       )}
                       initial={{ scale: 0.8 }}
                       whileHover={{ scale: 1.1 }}
+                      style={{ display: "none" }} /* Hide this since we're showing count inline */
                     >
                       {project.tasksCount}
                     </motion.span>
