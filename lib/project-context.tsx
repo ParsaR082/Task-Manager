@@ -2,14 +2,8 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Project } from './types';
-
-// Default projects data
-const defaultProjects: Project[] = [
-  { id: 'project-1', name: 'Website Redesign', color: 'bg-blue-500', description: 'Redesign the company website', tasksCount: 12 },
-  { id: 'project-2', name: 'Mobile App', color: 'bg-green-500', description: 'Develop the mobile application', tasksCount: 8 },
-  { id: 'project-3', name: 'Marketing Campaign', color: 'bg-purple-500', description: 'Q3 marketing campaign', tasksCount: 5 },
-  { id: 'project-4', name: 'API Development', color: 'bg-orange-500', description: 'Build new API endpoints', tasksCount: 15 },
-];
+import { useToast } from '@/components/ui/toast';
+import { useSession } from 'next-auth/react';
 
 interface ProjectContextType {
   projects: Project[];
@@ -20,32 +14,66 @@ interface ProjectContextType {
   selectProject: (projectId: string | null) => void;
   openModal: () => void;
   closeModal: () => void;
+  refreshProjects: () => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>(defaultProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useToast();
+  const { data: session } = useSession();
 
-  const addProject = (projectData: Omit<Project, 'id' | 'tasksCount'>) => {
+  // Fetch projects when session changes
+  useEffect(() => {
+    if (session?.user) {
+      refreshProjects();
+    }
+  }, [session]);
+
+  const refreshProjects = async () => {
+    if (!session?.user) return;
+    
+    try {
+      const response = await fetch('/api/projects');
+      if (!response.ok) throw new Error('Failed to fetch projects');
+      
+      const data = await response.json();
+      setProjects(data);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      showToast('Failed to load projects', 'error');
+    }
+  };
+
+  const addProject = async (projectData: Omit<Project, 'id' | 'tasksCount'>) => {
+    if (!session?.user) return;
+    
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      const newProject: Project = {
-        ...projectData,
-        id: `project-${Date.now()}`,
-        tasksCount: 0,
-      };
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectData),
+      });
       
+      if (!response.ok) throw new Error('Failed to create project');
+      
+      const newProject = await response.json();
       setProjects(prevProjects => [...prevProjects, newProject]);
-      setIsLoading(false);
+      showToast(`Project "${projectData.name}" created successfully!`, 'success');
       setIsModalOpen(false);
       setSelectedProjectId(newProject.id);
-    }, 800); // Simulate network delay
+    } catch (error) {
+      console.error('Error creating project:', error);
+      showToast('Failed to create project', 'error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const selectProject = (projectId: string | null) => {
@@ -66,6 +94,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         selectProject,
         openModal,
         closeModal,
+        refreshProjects,
       }}
     >
       {children}

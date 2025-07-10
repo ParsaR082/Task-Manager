@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Task, TaskStatus, TaskPriority } from '@/lib/types';
+import { Task, TaskStatus } from '@/lib/types';
 import { toast } from 'sonner';
 
 interface TaskContextType {
@@ -9,7 +9,7 @@ interface TaskContextType {
   loading: boolean;
   error: string | null;
   fetchTasks: () => Promise<void>;
-  addTask: (task: Omit<Task, 'id'>) => Promise<void>;
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateTask: (id: string, task: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   updateTaskStatus: (id: string, status: TaskStatus) => Promise<void>;
@@ -43,7 +43,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const addTask = async (task: Omit<Task, 'id'>) => {
+  const addTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       const response = await fetch('/api/tasks', {
         method: 'POST',
@@ -91,6 +91,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateTaskStatus = async (id: string, status: TaskStatus) => {
+    return updateTask(id, { status });
+  };
+
   const deleteTask = async (id: string) => {
     try {
       const response = await fetch(`/api/tasks/${id}`, {
@@ -106,17 +110,6 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('Error deleting task:', err);
       toast.error('Failed to delete task');
-      throw err;
-    }
-  };
-
-  const updateTaskStatus = async (id: string, status: TaskStatus) => {
-    try {
-      await updateTask(id, { status });
-      toast.success(`Task moved to ${status}`);
-    } catch (err) {
-      console.error('Error updating task status:', err);
-      toast.error('Failed to update task status');
       throw err;
     }
   };
