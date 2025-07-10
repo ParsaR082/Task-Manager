@@ -30,12 +30,12 @@ export function Sidebar({
   collapsed = false, 
   onCollapsedChange,
 }: SidebarProps) {
-  const [localCollapsed, setLocalCollapsed] = useState(collapsed);
+  const { projects, selectedProjectId, setSelectedProjectId, addProject } = useProjects();
+  const { addTask } = useTasks();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [localCollapsed, setLocalCollapsed] = useState(collapsed);
   const pathname = usePathname();
-  const { projects, selectedProjectId, setSelectedProjectId, addProject } = useProjects();
-  const { tasks, addTask } = useTasks();
 
   const navigationItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard', active: pathname === '/dashboard' },

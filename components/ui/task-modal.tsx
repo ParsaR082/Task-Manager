@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Task, TaskStatus } from '@/lib/types';
+import { Task, TaskStatus, TaskPriority } from '@/lib/types';
+import { useProjects } from '@/lib/project-context';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -14,10 +15,13 @@ interface TaskModalProps {
 }
 
 export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
+  const { projects } = useProjects();
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [dueDate, setDueDate] = useState(task?.dueDate || '');
   const [status, setStatus] = useState<TaskStatus>(task?.status || TaskStatus.TODO);
+  const [priority, setPriority] = useState<TaskPriority>(task?.priority || 'medium');
+  const [projectId, setProjectId] = useState<string | undefined>(task?.projectId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +30,8 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
       description,
       dueDate,
       status: TaskStatus.TODO,
-      priority: 'medium',
+      priority,
+      projectId,
       createdAt: task?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
@@ -108,6 +113,59 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
                   )}
                   placeholder="Enter task description"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="priority"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Priority
+                  </label>
+                  <select
+                    id="priority"
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as TaskPriority)}
+                    className={cn(
+                      "w-full px-4 py-2 rounded-lg border bg-white dark:bg-slate-800",
+                      "border-slate-300 dark:border-slate-600",
+                      "focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent",
+                      "text-slate-900 dark:text-slate-100"
+                    )}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="project"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Project
+                  </label>
+                  <select
+                    id="project"
+                    value={projectId || ''}
+                    onChange={(e) => setProjectId(e.target.value || undefined)}
+                    className={cn(
+                      "w-full px-4 py-2 rounded-lg border bg-white dark:bg-slate-800",
+                      "border-slate-300 dark:border-slate-600",
+                      "focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent",
+                      "text-slate-900 dark:text-slate-100"
+                    )}
+                  >
+                    <option value="">No Project</option>
+                    {projects.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="space-y-2">

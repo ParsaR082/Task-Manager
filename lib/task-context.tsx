@@ -1,14 +1,15 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Task, TaskStatus, TaskPriority } from '@/lib/types';
+import { Task, TaskStatus } from '@/lib/types';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
   error: string | null;
-  fetchTasks: () => Promise<void>;
+  fetchTasks: (projectId?: string) => Promise<void>;
   addTask: (task: Omit<Task, 'id'>) => Promise<void>;
   updateTask: (id: string, task: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -21,13 +22,17 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: session } = useSession();
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (projectId?: string) => {
+    if (!session?.user) return;
+    
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch('/api/tasks');
+      const url = projectId ? `/api/tasks?projectId=${projectId}` : '/api/tasks';
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error('Failed to fetch tasks');
@@ -38,12 +43,18 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('Error fetching tasks:', err);
       setError('Failed to load tasks. Please try again.');
+      toast.error('Failed to load tasks');
     } finally {
       setLoading(false);
     }
   };
 
   const addTask = async (task: Omit<Task, 'id'>) => {
+    if (!session?.user) {
+      toast.error('You must be logged in to create tasks');
+      return;
+    }
+
     try {
       const response = await fetch('/api/tasks', {
         method: 'POST',
@@ -56,7 +67,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       }
 
       const newTask = await response.json();
-      setTasks(prev => [...prev, newTask]);
+      setTasks(prev => [newTask, ...prev]);
       toast.success('Task created successfully');
       return newTask;
     } catch (err) {
@@ -67,6 +78,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateTask = async (id: string, taskUpdate: Partial<Task>) => {
+    if (!session?.user) {
+      toast.error('You must be logged in to update tasks');
+      return;
+    }
+
     try {
       const response = await fetch(`/api/tasks/${id}`, {
         method: 'PATCH',
@@ -92,6 +108,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteTask = async (id: string) => {
+    if (!session?.user) {
+      toast.error('You must be logged in to delete tasks');
+      return;
+    }
+
     try {
       const response = await fetch(`/api/tasks/${id}`, {
         method: 'DELETE',
@@ -123,8 +144,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch tasks on initial load
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (session?.user) {
+      fetchTasks();
+    }
+  }, [session]);
 
   return (
     <TaskContext.Provider
