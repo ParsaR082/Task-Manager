@@ -3,7 +3,6 @@
 import React, { useState, createContext, useContext } from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
-import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface DashboardLayoutProps {

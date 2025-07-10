@@ -70,6 +70,10 @@ export function TaskCard({ task, index }: TaskCardProps) {
     [0.97, 1, 0.97]
   );
   
+  // Create transform values for light position outside of the render function
+  const lightTopPosition = useTransform(springLightY, [-0.5, 0.5], ['30%', '70%']);
+  const lightLeftPosition = useTransform(springLightX, [-0.5, 0.5], ['30%', '70%']);
+  
   // Handle mouse move for 3D tilt effect
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -185,8 +189,8 @@ export function TaskCard({ task, index }: TaskCardProps) {
                   : isCompleted
                     ? 'radial-gradient(circle at center, rgba(34, 197, 94, 0.4) 0%, transparent 50%)'
                     : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.8) 0%, transparent 50%)',
-                top: useTransform(springLightY, [-0.5, 0.5], ['30%', '70%']),
-                left: useTransform(springLightX, [-0.5, 0.5], ['30%', '70%']),
+                top: lightTopPosition,
+                left: lightLeftPosition,
                 width: '100%',
                 height: '100%',
               }}

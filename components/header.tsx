@@ -4,7 +4,6 @@ import React from 'react';
 import { ThemeToggle } from './theme-toggle';
 import { NotificationBell } from './notification-bell';
 import { TaskSearch } from './task-search';
-import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Command } from 'lucide-react';
 

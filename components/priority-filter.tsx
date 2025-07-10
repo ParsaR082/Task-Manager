@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Filter, ChevronDown, X, Check } from 'lucide-react';
+import { Filter, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -98,7 +98,7 @@ export function PriorityFilter({ selectedPriority, onPriorityChange }: PriorityF
                 <motion.button
                   key={index}
                   onClick={() => {
-                    onPriorityChange(option.value as any);
+                    onPriorityChange(option.value as 'low' | 'medium' | 'high' | null);
                     setIsOpen(false);
                   }}
                   className={cn(

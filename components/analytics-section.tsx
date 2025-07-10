@@ -24,7 +24,7 @@ export function AnalyticsSection({ tasks }: AnalyticsSectionProps) {
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.status === TaskStatus.DONE).length;
   const inProgressTasks = tasks.filter(task => task.status === TaskStatus.IN_PROGRESS).length;
-  const todoTasks = tasks.filter(task => task.status === TaskStatus.TODO).length;
+  const _todoTasks = tasks.filter(task => task.status === TaskStatus.TODO).length;
   const overdueTasks = tasks.filter(task => 
     new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE
   ).length;

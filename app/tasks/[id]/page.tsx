@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { motion } from 'framer-motion';
 import { Task, TaskStatus } from '@/lib/types';
@@ -94,7 +94,6 @@ const tasks: Task[] = [
 ];
 
 export default function TaskDetailsPage() {
-  const router = useRouter();
   const params = useParams();
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
