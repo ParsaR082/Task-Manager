@@ -1,17 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Tag, X, ChevronDown } from 'lucide-react';
+import { Search, Tag, X } from 'lucide-react';
 
-export function TaskSearch() {
-  const [searchQuery, setSearchQuery] = useState('');
+interface TaskSearchProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export function TaskSearch({ value, onChange }: TaskSearchProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [isTagInputVisible, setIsTagInputVisible] = useState(false);
 
   const handleSearch = () => {
     // Handle search logic
-    console.log('Searching for:', searchQuery, 'with tags:', tags);
+    console.log('Searching for:', value, 'with tags:', tags);
   };
 
   const addTag = () => {
@@ -44,8 +48,8 @@ export function TaskSearch() {
         </div>
         <input
           type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Search tasks..."
           className="flex-1 py-2 px-3 bg-transparent focus:outline-none text-slate-900 dark:text-slate-100 placeholder-slate-400"
@@ -57,9 +61,9 @@ export function TaskSearch() {
         >
           <Tag className="h-5 w-5" />
         </button>
-        {searchQuery && (
+        {value && (
           <button
-            onClick={() => setSearchQuery('')}
+            onClick={() => onChange('')}
             className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             title="Clear search"
           >

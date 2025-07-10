@@ -34,6 +34,8 @@ export interface Project {
   description?: string;
   color: string;
   tasksCount: number;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
 }
 
 export interface Notification {

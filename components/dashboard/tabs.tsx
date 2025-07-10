@@ -102,4 +102,4 @@ export function TabsContent({ value, children }: TabsContentProps) {
       )}
     </AnimatePresence>
   );
-} 
+}

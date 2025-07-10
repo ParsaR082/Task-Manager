@@ -1,61 +1,36 @@
 'use client';
 
-import React from 'react';
-import { ThemeToggle } from './theme-toggle';
-import { NotificationBell } from './notification-bell';
-import { TaskSearch } from './task-search';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Command } from 'lucide-react';
+import { Bell, Settings } from 'lucide-react';
+import { TaskSearch } from './task-search';
+import { NotificationBell } from './notification-bell';
+import { ThemeToggle } from './theme-toggle';
+import { cn } from '@/lib/utils';
 
-interface HeaderProps {
-  notificationCount?: number;
-  onNotificationClick?: () => void;
-}
+export function Header() {
+  const [searchQuery, setSearchQuery] = useState('');
 
-export function Header({ 
-  notificationCount = 0, 
-  onNotificationClick 
-}: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md bg-opacity-90 dark:bg-opacity-90 shadow-sm">
-      <div className="flex items-center justify-between px-6 py-3">
-        {/* Left side - Logo/Title */}
-        <motion.div 
-          className="flex items-center"
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-700 bg-white/75 dark:bg-slate-900/75 backdrop-blur-lg">
+      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Left side - Search */}
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-md">
-              <Command className="w-4 h-4" />
-            </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Task Manager</h1>
-          </div>
-        </motion.div>
-
-        {/* Center - Search */}
-        <motion.div 
-          className="flex-1 max-w-2xl mx-6"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <TaskSearch />
+          <TaskSearch value={searchQuery} onChange={setSearchQuery} />
         </motion.div>
 
         {/* Right side - Actions */}
-        <motion.div 
-          className="flex items-center gap-4"
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="flex items-center gap-2"
         >
-          <NotificationBell 
-            count={notificationCount} 
-            onClick={onNotificationClick} 
-          />
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+          <NotificationBell />
           <ThemeToggle />
         </motion.div>
       </div>

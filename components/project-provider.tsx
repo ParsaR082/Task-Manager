@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Project } from '@/lib/types';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ProjectContextType {
   projects: Project[];
@@ -11,8 +12,8 @@ interface ProjectContextType {
   selectedProjectId: string | undefined;
   setSelectedProjectId: (id: string | undefined) => void;
   fetchProjects: () => Promise<void>;
-  addProject: (project: Omit<Project, 'id'>) => Promise<void>;
-  updateProject: (id: string, project: Partial<Project>) => Promise<void>;
+  addProject: (project: Omit<Project, 'id' | 'tasksCount'>) => Promise<void>;
+  updateProject: (project: Project) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
 }
 
@@ -45,22 +46,27 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const addProject = async (project: Omit<Project, 'id'>) => {
+  const addProject = async (project: Omit<Project, 'id' | 'tasksCount'>) => {
+    const newProject: Project = {
+      ...project,
+      id: uuidv4(),
+      tasksCount: 0
+    };
     try {
       const response = await fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(project),
+        body: JSON.stringify(newProject),
       });
 
       if (!response.ok) {
         throw new Error('Failed to create project');
       }
 
-      const newProject = await response.json();
-      setProjects(prev => [...prev, newProject]);
+      const createdProject = await response.json();
+      setProjects(prev => [...prev, createdProject]);
       toast.success('Project created successfully');
-      return newProject;
+      return createdProject;
     } catch (err) {
       console.error('Error creating project:', err);
       toast.error('Failed to create project');
@@ -68,9 +74,9 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateProject = async (id: string, projectUpdate: Partial<Project>) => {
+  const updateProject = async (projectUpdate: Project) => {
     try {
-      const response = await fetch(`/api/projects/${id}`, {
+      const response = await fetch(`/api/projects/${projectUpdate.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(projectUpdate),
@@ -82,7 +88,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
 
       const updatedProject = await response.json();
       setProjects(prev => 
-        prev.map(p => p.id === id ? { ...p, ...updatedProject } : p)
+        prev.map(p => p.id === projectUpdate.id ? { ...p, ...updatedProject } : p)
       );
       toast.success('Project updated successfully');
       return updatedProject;

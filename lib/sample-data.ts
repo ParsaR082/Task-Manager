@@ -2,10 +2,38 @@ import { Task, TaskStatus, Project } from './types';
 
 // Sample projects data
 export const sampleProjects: Project[] = [
-  { id: 'project-1', name: 'Website Redesign', color: 'bg-blue-500', tasksCount: 0 },
-  { id: 'project-2', name: 'Mobile App', color: 'bg-green-500', tasksCount: 0 },
-  { id: 'project-3', name: 'Marketing Campaign', color: 'bg-purple-500', tasksCount: 0 },
-  { id: 'project-4', name: 'API Development', color: 'bg-orange-500', tasksCount: 0 },
+  { 
+    id: 'project-1', 
+    name: 'Website Redesign', 
+    color: 'bg-blue-500', 
+    tasksCount: 0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z'
+  },
+  { 
+    id: 'project-2', 
+    name: 'Mobile App', 
+    color: 'bg-green-500', 
+    tasksCount: 0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z'
+  },
+  { 
+    id: 'project-3', 
+    name: 'Marketing Campaign', 
+    color: 'bg-purple-500', 
+    tasksCount: 0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z'
+  },
+  { 
+    id: 'project-4', 
+    name: 'API Development', 
+    color: 'bg-orange-500', 
+    tasksCount: 0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z'
+  }
 ];
 
 // Sample tasks data with projectId field

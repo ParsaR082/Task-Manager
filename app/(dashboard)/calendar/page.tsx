@@ -55,8 +55,10 @@ export default async function CalendarPage() {
     id: project.id,
     name: project.name,
     description: project.description || undefined,
-    color: project.color,
-    tasksCount: 0, // This will be calculated on the client
+    color: project.color || '#3B82F6',
+    tasksCount: project.tasksCount || 0,
+    createdAt: project.createdAt || new Date().toISOString(),
+    updatedAt: project.updatedAt || new Date().toISOString()
   }));
 
   return (
