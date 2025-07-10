@@ -1,7 +1,13 @@
-import type { NextConfig } from "next";
+import { withAuth } from "next-auth/middleware";
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const config = {
+  reactStrictMode: true,
+  swcMinify: true,
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'localhost:3001'],
+    },
+  },
 };
 
-export default nextConfig;
+export default config;

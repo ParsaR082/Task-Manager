@@ -32,9 +32,9 @@ export function Sidebar({
   const { tasks } = useTasks();
 
   const navigationItems = [
-    { icon: Home, label: 'Dashboard', href: '/', active: pathname === '/' },
-    { icon: Calendar, label: 'Calendar', href: '/calendar', active: pathname === '/calendar' },
-    { icon: BarChart3, label: 'Analytics', href: '/analytics', active: pathname === '/analytics' },
+    { icon: Home, label: 'Dashboard', href: '/dashboard', active: pathname === '/dashboard' },
+    { icon: Calendar, label: 'Calendar', href: '/dashboard/calendar', active: pathname === '/dashboard/calendar' },
+    { icon: BarChart3, label: 'Analytics', href: '/dashboard/analytics', active: pathname === '/dashboard/analytics' },
   ];
 
   const handleToggleCollapse = () => {
