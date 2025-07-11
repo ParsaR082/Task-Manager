@@ -1,6 +1,6 @@
 import { CalendarWrapper } from '@/components/calendar-wrapper';
 import { requireAuth } from '@/lib/server-utils';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { Task, TaskStatus, Project } from '@/lib/types';
 import { Suspense } from 'react';
 

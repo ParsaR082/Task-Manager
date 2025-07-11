@@ -1,7 +1,7 @@
 import { NextAuthOptions, getServerSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import prisma from "./prisma";
+import { prisma } from "./prisma";
 
 // Extend the session type to include user.id
 declare module "next-auth" {

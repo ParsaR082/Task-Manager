@@ -48,77 +48,98 @@ const priorityColors = {
   }
 };
 
+// Add new keyframes for spin animation
+const spinKeyframes = {
+  '0%': { transform: 'perspective(1000px) rotateY(0deg)' },
+  '100%': { transform: 'perspective(1000px) rotateY(360deg)' }
+};
+
 export function TaskCard({ task, index }: TaskCardProps) {
   const isOverdue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE;
   const isCompleted = task.status === TaskStatus.DONE;
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
   
-  // 3D tilt effect values
+  // Enhanced 3D tilt effect values
   const [isHovered, setIsHovered] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
+  const rotateZ = useMotionValue(0);
   
   // Spring animations for smooth transitions
   const springConfig = { damping: 15, stiffness: 150 };
   const springRotateX = useSpring(rotateX, springConfig);
   const springRotateY = useSpring(rotateY, springConfig);
+  const springRotateZ = useSpring(rotateZ, springConfig);
 
-  // Light reflection position
+  // Light reflection position with enhanced smoothing
   const lightX = useMotionValue(0);
   const lightY = useMotionValue(0);
-  const springLightX = useSpring(lightX, springConfig);
-  const springLightY = useSpring(lightY, springConfig);
+  const springLightX = useSpring(lightX, { damping: 20, stiffness: 200 });
+  const springLightY = useSpring(lightY, { damping: 20, stiffness: 200 });
   
-  // Transform values for perspective and scale
-  const perspective = 800;
+  // Transform values for enhanced perspective and scale
+  const perspective = 1000;
   const scale = useTransform(
     springRotateX,
-    [-20, 0, 20],
-    [0.97, 1, 0.97]
+    [-30, 0, 30],
+    [0.95, 1, 0.95]
   );
+
+  // Enhanced light position transforms
+  const lightTopPosition = useTransform(springLightY, [-0.5, 0.5], ['20%', '80%']);
+  const lightLeftPosition = useTransform(springLightX, [-0.5, 0.5], ['20%', '80%']);
   
-  // Create transform values for light position outside of the render function
-  const lightTopPosition = useTransform(springLightY, [-0.5, 0.5], ['30%', '70%']);
-  const lightLeftPosition = useTransform(springLightX, [-0.5, 0.5], ['30%', '70%']);
-  
-  // Handle mouse move for 3D tilt effect
+  // Enhanced mouse move handler for 3D tilt
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || isSpinning) return;
     
     const rect = cardRef.current.getBoundingClientRect();
     
-    // Calculate mouse position relative to card center (in percentage -0.5 to 0.5)
+    // Calculate mouse position with enhanced sensitivity
     const centerX = (e.clientX - rect.left) / rect.width - 0.5;
     const centerY = (e.clientY - rect.top) / rect.height - 0.5;
     
-    // Set rotation values (multiplied for more pronounced effect)
-    rotateX.set(-centerY * 20); // Negative because we want to tilt toward the cursor
-    rotateY.set(centerX * 20);
+    // Enhanced rotation values
+    rotateX.set(-centerY * 25);
+    rotateY.set(centerX * 25);
+    rotateZ.set(centerX * 5);
     
-    // Set light reflection position
+    // Enhanced light reflection
     lightX.set(centerX);
     lightY.set(centerY);
   };
   
-  // Handle mouse leave to reset tilt
   const handleMouseLeave = () => {
+    if (isSpinning) return;
     setIsHovered(false);
     rotateX.set(0);
     rotateY.set(0);
+    rotateZ.set(0);
     lightX.set(0);
     lightY.set(0);
   };
   
-  // Handle mouse enter
   const handleMouseEnter = () => {
+    if (isSpinning) return;
     setIsHovered(true);
   };
   
+  // Enhanced click handler with spin animation
   const handleTaskClick = (e: React.MouseEvent) => {
-    // Prevent triggering drag when clicking
     e.stopPropagation();
-    router.push(`/tasks/${task.id}`);
+    if (isSpinning) return;
+    
+    setIsSpinning(true);
+    
+    // Trigger spin animation
+    rotateY.set(360);
+    
+    // Navigate after spin animation
+    setTimeout(() => {
+      router.push(`/dashboard/tasks/${task.id}`);
+    }, 400);
   };
   
   const priorityColor = priorityColors[task.priority as keyof typeof priorityColors] || priorityColors.medium;
@@ -128,9 +149,8 @@ export function TaskCard({ task, index }: TaskCardProps) {
       {(provided, snapshot) => (
         <motion.div
           ref={(node) => {
-            // Combine refs: one for Draggable and one for our mouse tracking
             provided.innerRef(node);
-            // @ts-ignore - TypeScript doesn't like this pattern but it works
+            // @ts-ignore
             cardRef.current = node;
           }}
           {...provided.draggableProps}
@@ -142,15 +162,45 @@ export function TaskCard({ task, index }: TaskCardProps) {
           style={{
             rotateX: springRotateX,
             rotateY: springRotateY,
+            rotateZ: springRotateZ,
             scale: snapshot.isDragging ? 1.05 : scale,
             transformPerspective: perspective,
             transformStyle: "preserve-3d",
             y: snapshot.isDragging ? -5 : 0,
-            boxShadow: snapshot.isDragging 
-              ? '0 25px 30px -5px rgba(0, 0, 0, 0.15), 0 15px 15px -5px rgba(0, 0, 0, 0.08)'
-              : isHovered
-                ? `0 20px 25px -5px ${isOverdue ? 'rgba(239, 68, 68, 0.15)' : isCompleted ? 'rgba(34, 197, 94, 0.15)' : 'rgba(59, 130, 246, 0.15)'}, 0 10px 10px -5px rgba(0, 0, 0, 0.1)`
-                : '0 2px 10px rgba(0, 0, 0, 0.05)',
+          }}
+          className={cn(
+            'group relative rounded-2xl border p-5 mb-4',
+            'backdrop-blur-[20px] backdrop-saturate-[180%]',
+            'transition-all duration-300 cursor-pointer',
+            'will-change-transform',
+            // Enhanced glass morphism base styles
+            'before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-tr',
+            'before:from-white/40 before:to-white/10 dark:before:from-white/10 dark:before:to-transparent',
+            'before:pointer-events-none before:-z-10',
+            // Enhanced border styles
+            'after:absolute after:inset-0 after:rounded-2xl after:p-[1px]',
+            'after:bg-gradient-to-tr after:from-white/20 after:to-white/5',
+            'after:dark:from-white/10 after:dark:to-transparent',
+            'after:pointer-events-none',
+            // Priority and status-based colors
+            isOverdue 
+              ? 'border-red-200/40 dark:border-red-800/30 bg-red-50/30 dark:bg-red-900/20' 
+              : isCompleted
+                ? 'border-green-200/40 dark:border-green-800/30 bg-green-50/30 dark:bg-green-900/20'
+                : `${priorityColor.border} ${priorityColor.bg}`,
+            snapshot.isDragging && 'ring-2 ring-blue-400/30 dark:ring-blue-500/30',
+            // Enhanced base background
+            'bg-white/40 dark:bg-slate-900/40',
+            // Enhanced shadow effects
+            'shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12)]',
+            'dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.24)]'
+          )}
+          onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleTaskClick}
+          whileHover={{
+            filter: 'brightness(1.1)',
           }}
           transition={{
             type: "spring",
@@ -158,52 +208,41 @@ export function TaskCard({ task, index }: TaskCardProps) {
             damping: 25,
             mass: 0.8
           }}
-          onMouseMove={handleMouseMove}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onClick={handleTaskClick}
-          className={cn(
-            'group relative rounded-2xl border p-5 mb-4',
-            'backdrop-blur-md backdrop-saturate-150',
-            'transition-all duration-300 cursor-pointer',
-            'will-change-transform',
-            isOverdue 
-              ? 'border-red-200/60 dark:border-red-800/40 bg-red-50/70 dark:bg-red-900/30' 
-              : isCompleted
-                ? 'border-green-200/60 dark:border-green-800/40 bg-green-50/70 dark:bg-green-900/30'
-                : `${priorityColor.border} ${priorityColor.bg}`,
-            snapshot.isDragging && 'ring-2 ring-blue-400 dark:ring-blue-500',
-            // Glass effect enhancements
-            'bg-white/60 dark:bg-slate-900/50',
-            'shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)]',
-            'dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.2)]'
-          )}
         >
-          {/* Glass overlay for enhanced glassmorphism */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 via-white/20 to-transparent dark:from-white/5 dark:via-white/5 dark:to-transparent pointer-events-none" />
-          
-          {/* Animated light reflection effect */}
+          {/* Enhanced glass overlay with noise texture */}
+          <div 
+            className={cn(
+              "absolute inset-0 rounded-2xl pointer-events-none",
+              "bg-[url('data:image/svg+xml,...')] opacity-[0.015]",
+              "mix-blend-overlay"
+            )} 
+          />
+
+          {/* Enhanced light reflection effect */}
           <motion.div 
             className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-            style={{
-              zIndex: 2,
-            }}
+            style={{ zIndex: 2 }}
           >
             <motion.div 
-              className="absolute inset-[-100%] opacity-20 dark:opacity-10 pointer-events-none"
+              className="absolute inset-[-100%] opacity-30 dark:opacity-20 pointer-events-none"
               style={{
                 background: isOverdue 
-                  ? 'radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, transparent 50%)' 
+                  ? 'radial-gradient(circle at center, rgba(239, 68, 68, 0.3) 0%, transparent 70%)' 
                   : isCompleted
-                    ? 'radial-gradient(circle at center, rgba(34, 197, 94, 0.4) 0%, transparent 50%)'
-                    : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.8) 0%, transparent 50%)',
+                    ? 'radial-gradient(circle at center, rgba(34, 197, 94, 0.3) 0%, transparent 70%)'
+                    : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.6) 0%, transparent 70%)',
                 top: lightTopPosition,
                 left: lightLeftPosition,
-                width: '100%',
-                height: '100%',
+                width: '140%',
+                height: '140%',
+                filter: 'blur(10px)',
               }}
             />
           </motion.div>
+
+          {/* Decorative floating circles */}
+          <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-gradient-to-tr from-white/20 to-transparent dark:from-white/5 blur-xl pointer-events-none" />
+          <div className="absolute -bottom-6 -left-6 w-16 h-16 rounded-full bg-gradient-to-tr from-white/20 to-transparent dark:from-white/5 blur-xl pointer-events-none" />
 
           {/* Priority Indicator Line */}
           <div 

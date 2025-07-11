@@ -24,10 +24,10 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <AuthProvider session={session}>
-          <ThemeProvider>
-            {children}
+        <ThemeProvider>
+          {children}
             <Toaster position="top-right" />
-          </ThemeProvider>
+        </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

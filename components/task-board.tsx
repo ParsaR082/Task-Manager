@@ -26,7 +26,7 @@ export function TaskBoard({ tasks = [], onTaskMove, selectedProjectId }: TaskBoa
   // State for filtered tasks
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTags, setSearchTags] = useState<string[]>([]);
-
+  
   // Filter tasks based on search query and tags
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
@@ -41,7 +41,7 @@ export function TaskBoard({ tasks = [], onTaskMove, selectedProjectId }: TaskBoa
       }
       
       // Filter by tags
-      if (searchTags.length > 0) {
+    if (searchTags.length > 0) {
         if (!task.tags || task.tags.length === 0) {
           return false;
         }
@@ -50,10 +50,10 @@ export function TaskBoard({ tasks = [], onTaskMove, selectedProjectId }: TaskBoa
         if (!task.tags.some(taskTag => 
           searchTags.some(searchTag => 
             taskTag.toLowerCase().includes(searchTag.toLowerCase())
-          )
+        )
         )) {
           return false;
-        }
+    }
       }
       
       return true;
@@ -67,21 +67,21 @@ export function TaskBoard({ tasks = [], onTaskMove, selectedProjectId }: TaskBoa
       [TaskStatus.IN_PROGRESS]: [] as Task[],
       [TaskStatus.DONE]: [] as Task[]
     };
-    
+
     filteredTasks.forEach(task => {
       grouped[task.status].push(task);
     });
-    
+
     return grouped;
   }, [filteredTasks]);
 
   // Handle drag end
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
-    
+
     // Dropped outside a valid drop target
     if (!destination) return;
-    
+
     // Dropped in the same place
     if (
       destination.droppableId === source.droppableId &&
@@ -89,10 +89,10 @@ export function TaskBoard({ tasks = [], onTaskMove, selectedProjectId }: TaskBoa
     ) {
       return;
     }
-    
+
     // Get the new status from the destination droppableId
     const newStatus = destination.droppableId as TaskStatus;
-    
+
     // Call the onTaskMove callback if provided
     if (onTaskMove) {
       onTaskMove(draggableId, newStatus);
@@ -113,13 +113,13 @@ export function TaskBoard({ tasks = [], onTaskMove, selectedProjectId }: TaskBoa
             tasks={tasksByStatus[TaskStatus.IN_PROGRESS]}
             status={TaskStatus.IN_PROGRESS}
           />
-          <TaskColumn 
+                    <TaskColumn
             title="Done" 
             tasks={tasksByStatus[TaskStatus.DONE]}
             status={TaskStatus.DONE}
-          />
+                    />
         </DragDropContext>
-      </div>
-    </div>
+          </div>
+        </div>
   );
 } 

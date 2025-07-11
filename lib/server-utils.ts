@@ -1,6 +1,6 @@
-import { getSession } from './auth';
-import prisma from './prisma';
 import { redirect } from 'next/navigation';
+import { getSession } from './auth';
+import { prisma } from './prisma';
 
 export async function getCurrentUser() {
   const session = await getSession();

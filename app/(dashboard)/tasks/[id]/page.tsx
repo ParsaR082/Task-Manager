@@ -1,205 +1,299 @@
 'use client';
 
-import { requireAuth } from '@/lib/server-utils';
-import prisma from '@/lib/prisma';
-import { TaskStatus } from '@/lib/types';
-import { 
-  Calendar, 
-  Clock, 
-  Tag, 
-  CheckCircle2, 
-  ArrowLeft,
-  AlertTriangle,
-  Edit3,
-  Trash2
-} from 'lucide-react';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Task, TaskStatus } from '@/lib/types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, Tag, Clock, ArrowLeft, Trash2, Save, Edit3, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-// Map Prisma TaskStatus to our frontend TaskStatus
-function mapTaskStatus(status: any): TaskStatus {
-  const mapping: Record<string, TaskStatus> = {
-    'TODO': TaskStatus.TODO,
-    'IN_PROGRESS': TaskStatus.IN_PROGRESS,
-    'DONE': TaskStatus.DONE
+interface TaskDetailsProps {
+  params: {
+    id: string;
   };
-  return mapping[status] || TaskStatus.TODO;
 }
 
-// Format date nicely
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-}
+export default function TaskDetails({ params }: TaskDetailsProps) {
+  const router = useRouter();
+  const [task, setTask] = useState<Task | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTask, setEditedTask] = useState<Partial<Task>>({});
+  const [isDeleting, setIsDeleting] = useState(false);
 
-// Priority styling
-const priorityColors = {
-  low: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50',
-  medium: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800/50',
-  high: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800/50'
-};
+  useEffect(() => {
+    fetchTask();
+  }, [params.id]);
 
-// Status styling
-const statusColors = {
-  [TaskStatus.TODO]: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
-  [TaskStatus.IN_PROGRESS]: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50',
-  [TaskStatus.DONE]: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800/50'
-};
-
-async function TaskDetails({ id }: { id: string }) {
-  // Require authentication
-  const user = await requireAuth();
-  
-  // Fetch task from database
-  const task = await prisma.task.findUnique({
-    where: {
-      id: id,
-      userId: user.id // Ensure the task belongs to the authenticated user
-    },
-    include: {
-      project: true
+  const fetchTask = async () => {
+    try {
+      const response = await fetch(`/api/tasks/${params.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch task');
+      }
+      const data = await response.json();
+      setTask(data);
+      setEditedTask(data); // Initialize edited task with current data
+    } catch (error) {
+      console.error('Error fetching task:', error);
+      toast.error('Failed to load task details');
+    } finally {
+      setIsLoading(false);
     }
-  });
-  
-  if (!task) {
-    notFound();
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`/api/tasks/${params.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: editedTask.title,
+          description: editedTask.description,
+          status: editedTask.status,
+          priority: editedTask.priority,
+          dueDate: editedTask.dueDate,
+          tags: editedTask.tags,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update task');
+      }
+
+      const updatedTask = await response.json();
+      setTask(updatedTask);
+      setIsEditing(false);
+      toast.success('Task updated successfully');
+      router.refresh(); // Refresh the page to update the UI
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast.error('Failed to update task');
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/tasks/${params.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete task');
+      }
+
+      toast.success('Task deleted successfully');
+      router.push('/dashboard');
+      router.refresh(); // Refresh the dashboard to update the task list
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast.error('Failed to delete task');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+      </div>
+    );
   }
   
-  // Map to frontend task format
-  const frontendTask = {
-    id: task.id,
-    title: task.title,
-    description: task.description || '',
-    status: mapTaskStatus(task.status),
-    priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
-    dueDate: task.dueDate ? task.dueDate.toISOString() : '',
-    tags: task.tags as string[],
-    projectId: task.projectId || undefined,
-    project: task.project ? {
-      id: task.project.id,
-      name: task.project.name,
-      color: task.project.color
-    } : undefined,
-    createdAt: task.createdAt.toISOString(),
-    updatedAt: task.updatedAt.toISOString()
-  };
+  if (!task) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold mb-4">Task not found</h1>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto max-w-4xl p-6">
-      {/* Back Button */}
-      <div className="mb-6">
-        <Link href="/dashboard">
-          <button className="flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="container mx-auto px-4 py-8 max-w-4xl"
+    >
+      {/* Glass morphism header */}
+      <div className="relative mb-8 p-6 rounded-2xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-lg border border-white/20 dark:border-slate-700/20 shadow-xl">
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-400/5 dark:via-purple-400/5 dark:to-pink-400/5 pointer-events-none" />
+        
+        <div className="relative flex items-center justify-between">
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+          >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </button>
-        </Link>
-      </div>
-      
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 border border-slate-200 dark:border-slate-700">
-        {/* Task Header */}
-        <div className="flex justify-between items-start mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-            {frontendTask.title}
-          </h1>
           
-          <div className="flex gap-2">
-            <button className="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-lg transition-colors">
-              <Edit3 className="w-5 h-5" />
+          <div className="flex items-center gap-3">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Changes
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Task
             </button>
-            <button className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 rounded-lg transition-colors">
-              <Trash2 className="w-5 h-5" />
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {isDeleting ? 'Deleting...' : 'Delete Task'}
             </button>
-          </div>
-        </div>
-        
-        {/* Task Description */}
-        <div className="mb-8">
-          <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
-            {frontendTask.description || "No description provided."}
-          </p>
-        </div>
-        
-        {/* Task Metadata */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Left Column */}
-          <div className="space-y-4">
-            {/* Status */}
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-              <span className="text-slate-700 dark:text-slate-300">Status:</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium border ${statusColors[frontendTask.status]}`}>
-                {frontendTask.status.replace('_', ' ')}
-              </span>
-            </div>
-            
-            {/* Priority */}
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-              <span className="text-slate-700 dark:text-slate-300">Priority:</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium border ${priorityColors[frontendTask.priority]}`}>
-                {frontendTask.priority.charAt(0).toUpperCase() + frontendTask.priority.slice(1)}
-              </span>
-            </div>
-            
-            {/* Project (if available) */}
-            {frontendTask.project && (
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-5 h-5 rounded-full" 
-                  style={{ backgroundColor: frontendTask.project.color }}
-                ></div>
-                <span className="text-slate-700 dark:text-slate-300">Project:</span>
-                <span className="text-slate-900 dark:text-slate-100">{frontendTask.project.name}</span>
-              </div>
+              </>
             )}
           </div>
-          
-          {/* Right Column */}
-          <div className="space-y-4">
-            {/* Due Date */}
-            {frontendTask.dueDate && (
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-                <span className="text-slate-700 dark:text-slate-300">Due Date:</span>
-                <span className="text-slate-900 dark:text-slate-100">{formatDate(frontendTask.dueDate)}</span>
-              </div>
-            )}
-            
-            {/* Created At */}
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-              <span className="text-slate-700 dark:text-slate-300">Created:</span>
-              <span className="text-slate-900 dark:text-slate-100">{formatDate(frontendTask.createdAt)}</span>
-            </div>
-            
-            {/* Updated At */}
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-              <span className="text-slate-700 dark:text-slate-300">Updated:</span>
-              <span className="text-slate-900 dark:text-slate-100">{formatDate(frontendTask.updatedAt)}</span>
-            </div>
           </div>
         </div>
         
-        {/* Tags */}
-        {frontendTask.tags && frontendTask.tags.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-2">
-              <Tag className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-              <span className="text-slate-700 dark:text-slate-300">Tags:</span>
+      {/* Task Details Card */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden">
+        <AnimatePresence mode="wait">
+          {isEditing ? (
+            <motion.div
+              key="edit"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="p-8 space-y-6"
+            >
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={editedTask.title}
+                  onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all"
+                  placeholder="Task title"
+                />
+        </div>
+        
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={editedTask.description}
+                  onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+                  rows={4}
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all resize-none"
+                  placeholder="Task description"
+                />
             </div>
+            
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={editedTask.status}
+                    onChange={(e) => setEditedTask({ ...editedTask, status: e.target.value as TaskStatus })}
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all"
+                  >
+                    <option value={TaskStatus.TODO}>To Do</option>
+                    <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
+                    <option value={TaskStatus.DONE}>Done</option>
+                  </select>
+            </div>
+            
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editedTask.dueDate}
+                    onChange={(e) => setEditedTask({ ...editedTask, dueDate: e.target.value })}
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="p-8 space-y-6"
+            >
+          <div className="space-y-4">
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                  {task.title}
+                </h1>
+                <p className="text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+                  {task.description || "No description provided."}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                  <Clock className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    Due: {new Date(task.dueDate).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </span>
+            </div>
+            
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                  <Tag className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    Status: {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                  </span>
+          </div>
+        </div>
+        
+              {task.tags && task.tags.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Tags
+                  </h3>
             <div className="flex flex-wrap gap-2">
-              {frontendTask.tags.map((tag, index) => (
+                    {task.tags.map((tag, index) => (
                 <span 
                   key={index}
-                  className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-full text-sm"
+                        className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full"
                 >
                   {tag}
                 </span>
@@ -207,15 +301,10 @@ async function TaskDetails({ id }: { id: string }) {
             </div>
           </div>
         )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
-  );
-}
-
-export default async function TaskDetailsPage({ params }: { params: { id: string } }) {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <TaskDetails id={params.id} />
-    </Suspense>
+    </motion.div>
   );
 } 
