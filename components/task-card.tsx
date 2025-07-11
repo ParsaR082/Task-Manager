@@ -138,7 +138,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
     
     // Navigate after spin animation
     setTimeout(() => {
-      router.push(`/dashboard/tasks/${task.id}`);
+      router.push(`/tasks/${task.id}`);
     }, 400);
   };
   

@@ -16,8 +16,9 @@ export interface Task {
   tags?: string[];
   assignee?: string;
   projectId?: string; // Reference to the project this task belongs to
-  createdAt?: string; // ISO date string
-  updatedAt?: string; // ISO date string
+  project?: Project; // The associated project
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
 }
 
 export interface User {

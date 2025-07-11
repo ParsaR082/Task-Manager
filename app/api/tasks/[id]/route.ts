@@ -18,10 +18,24 @@ export async function GET(
     const task = await prisma.task.findUnique({
       where: {
         id: params.id,
+        userId: session.user.id, // Only fetch tasks owned by the user
       },
       include: {
-        project: true,
-        user: true,
+        project: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          }
+        },
       }
     });
 
@@ -57,6 +71,18 @@ export async function PATCH(
     // Validate status
     if (!Object.values(TaskStatus).includes(body.status)) {
       return new NextResponse('Invalid status', { status: 400 });
+    }
+
+    // Check if task exists and belongs to the user
+    const existingTask = await prisma.task.findUnique({
+      where: {
+        id: params.id,
+        userId: session.user.id, // Only update tasks owned by the user
+      },
+    });
+
+    if (!existingTask) {
+      return new NextResponse('Task not found', { status: 404 });
     }
 
     // Update task
@@ -97,10 +123,11 @@ export async function DELETE(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Check if task exists
+    // Check if task exists and belongs to the user
     const task = await prisma.task.findUnique({
       where: {
         id: params.id,
+        userId: session.user.id, // Only delete tasks owned by the user
       },
     });
 

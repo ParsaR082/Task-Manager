@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Task, TaskStatus } from '@/lib/types';
+import { Task, TaskStatus, TaskPriority } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Tag, Clock, ArrowLeft, Trash2, Save, Edit3, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -57,6 +57,7 @@ export default function TaskDetails({ params }: TaskDetailsProps) {
           priority: editedTask.priority,
           dueDate: editedTask.dueDate,
           tags: editedTask.tags,
+          updatedAt: new Date().toISOString(),
         }),
       });
 
@@ -232,15 +233,31 @@ export default function TaskDetails({ params }: TaskDetailsProps) {
                     <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
                     <option value={TaskStatus.DONE}>Done</option>
                   </select>
-            </div>
-            
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Priority
+                  </label>
+                  <select
+                    value={editedTask.priority}
+                    onChange={(e) => setEditedTask({ ...editedTask, priority: e.target.value as TaskPriority })}
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Due Date
                   </label>
                   <input
                     type="date"
-                    value={editedTask.dueDate}
+                    value={editedTask.dueDate?.split('T')[0]}
                     onChange={(e) => setEditedTask({ ...editedTask, dueDate: e.target.value })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all"
                   />
@@ -255,7 +272,7 @@ export default function TaskDetails({ params }: TaskDetailsProps) {
               exit={{ opacity: 0, y: -20 }}
               className="p-8 space-y-6"
             >
-          <div className="space-y-4">
+              <div className="space-y-4">
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                   {task.title}
                 </h1>
@@ -268,39 +285,85 @@ export default function TaskDetails({ params }: TaskDetailsProps) {
                 <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
                   <Clock className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                   <span className="text-sm text-slate-700 dark:text-slate-300">
-                    Due: {new Date(task.dueDate).toLocaleDateString('en-US', {
+                    Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', {
                       month: 'long',
                       day: 'numeric',
                       year: 'numeric'
-                    })}
+                    }) : 'Not set'}
                   </span>
-            </div>
-            
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
-                  <Tag className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">
-                    Status: {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                </div>
+
+                <div className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg",
+                  task.status === TaskStatus.TODO && "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300",
+                  task.status === TaskStatus.IN_PROGRESS && "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
+                  task.status === TaskStatus.DONE && "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                )}>
+                  <Tag className="w-4 h-4" />
+                  <span className="text-sm">
+                    {task.status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
                   </span>
-          </div>
-        </div>
-        
+                </div>
+
+                <div className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg",
+                  task.priority === 'low' && "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
+                  task.priority === 'medium' && "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300",
+                  task.priority === 'high' && "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                )}>
+                  <span className="text-sm">
+                    Priority: {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                  </span>
+                </div>
+
+                {/* Created Date */}
+                {task.createdAt && (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                    <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                      Created: {new Date(task.createdAt).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                )}
+
+                {/* Project Information */}
+                {task.project && (
+                  <div 
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg"
+                    style={{
+                      backgroundColor: `${task.project.color}20`,
+                      color: task.project.color
+                    }}
+                  >
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: task.project.color }} />
+                    <span className="text-sm">
+                      {task.project.name}
+                    </span>
+                  </div>
+                )}
+              </div>
+
               {task.tags && task.tags.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     Tags
                   </h3>
-            <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {task.tags.map((tag, index) => (
-                <span 
-                  key={index}
+                      <span 
+                        key={index}
                         className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
