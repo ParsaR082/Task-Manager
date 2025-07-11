@@ -1,17 +1,19 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Task, TaskStatus } from '@/lib/types';
-import { toast } from 'sonner';
+import { Task, TaskStatus } from './types';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
   error: string | null;
-  fetchTasks: (projectId?: string) => Promise<void>;
-  addTask: (task: Omit<Task, 'id'>) => Promise<void>;
-  updateTask: (id: string, task: Partial<Task>) => Promise<void>;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  filteredTasks: Task[];
+  addTask: (task: Omit<Task, 'id'>) => Promise<Task>;
+  updateTask: (id: string, taskUpdate: Partial<Task>) => Promise<Task>;
   deleteTask: (id: string) => Promise<void>;
   updateTaskStatus: (id: string, status: TaskStatus) => Promise<void>;
 }
@@ -22,7 +24,19 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { data: session } = useSession();
+
+  // Filter tasks based on search query
+  const filteredTasks = React.useMemo(() => {
+    if (!searchQuery.trim()) return tasks;
+
+    const query = searchQuery.toLowerCase();
+    return tasks.filter(task => 
+      task.title.toLowerCase().includes(query) ||
+      task.description.toLowerCase().includes(query)
+    );
+  }, [tasks, searchQuery]);
 
   const fetchTasks = async (projectId?: string) => {
     if (!session?.user) return;
@@ -149,19 +163,21 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session]);
 
+  const value = {
+    tasks,
+    loading,
+    error,
+    searchQuery,
+    setSearchQuery,
+    filteredTasks,
+    addTask,
+    updateTask,
+    deleteTask,
+    updateTaskStatus,
+  };
+
   return (
-    <TaskContext.Provider
-      value={{
-        tasks,
-        loading,
-        error,
-        fetchTasks,
-        addTask,
-        updateTask,
-        deleteTask,
-        updateTaskStatus,
-      }}
-    >
+    <TaskContext.Provider value={value}>
       {children}
     </TaskContext.Provider>
   );
