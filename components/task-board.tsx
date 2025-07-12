@@ -26,7 +26,19 @@ export function TaskBoard({ tasks = [], onTaskMove, selectedProjectId }: TaskBoa
   // State for filtered tasks
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTags, setSearchTags] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
   
+  // Check if we're on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Filter tasks based on search query and tags
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
@@ -101,25 +113,59 @@ export function TaskBoard({ tasks = [], onTaskMove, selectedProjectId }: TaskBoa
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+      <div className={cn(
+        "flex-1 gap-4 sm:gap-6",
+        isMobile 
+          ? "flex flex-col space-y-4 pb-4" 
+          : "grid grid-cols-1 md:grid-cols-3 p-4 sm:p-6"
+      )}>
         <DragDropContext onDragEnd={handleDragEnd}>
-          <TaskColumn 
-            title="To Do" 
-            tasks={tasksByStatus[TaskStatus.TODO]}
-            status={TaskStatus.TODO}
-          />
-          <TaskColumn 
-            title="In Progress" 
-            tasks={tasksByStatus[TaskStatus.IN_PROGRESS]}
-            status={TaskStatus.IN_PROGRESS}
-          />
-                    <TaskColumn
-            title="Done" 
-            tasks={tasksByStatus[TaskStatus.DONE]}
-            status={TaskStatus.DONE}
-                    />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0 }}
+            className={cn(
+              isMobile && "mobile-card"
+            )}
+          >
+            <TaskColumn 
+              title="To Do" 
+              tasks={tasksByStatus[TaskStatus.TODO]}
+              status={TaskStatus.TODO}
+            />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className={cn(
+              isMobile && "mobile-card"
+            )}
+          >
+            <TaskColumn 
+              title="In Progress" 
+              tasks={tasksByStatus[TaskStatus.IN_PROGRESS]}
+              status={TaskStatus.IN_PROGRESS}
+            />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className={cn(
+              isMobile && "mobile-card"
+            )}
+          >
+            <TaskColumn
+              title="Done" 
+              tasks={tasksByStatus[TaskStatus.DONE]}
+              status={TaskStatus.DONE}
+            />
+          </motion.div>
         </DragDropContext>
-          </div>
-        </div>
+      </div>
+    </div>
   );
 } 

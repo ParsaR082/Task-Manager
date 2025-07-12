@@ -10,8 +10,8 @@ export default function AnalyticsPage() {
   const { projects } = useProjects();
 
   return (
-    <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+    <div className="mobile-section-spacing">
+      <h1 className="mobile-heading text-slate-900 dark:text-slate-100">
         Analytics & Insights
       </h1>
       <AnalyticsSection tasks={tasks} projects={projects} />

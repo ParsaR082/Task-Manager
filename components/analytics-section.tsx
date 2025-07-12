@@ -1,26 +1,36 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { Task, TaskStatus, Project } from '@/lib/types';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, CheckCircle, Clock, AlertCircle, Layers, PieChart, LineChart, FolderKanban } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
+import { 
+  BarChart3, 
+  TrendingUp, 
+  CheckCircle, 
+  Clock,
+  AlertCircle,
+  Calendar,
+  FolderKanban,
+  Target,
+  LineChart
+} from 'lucide-react';
+import { 
+  BarChart as RechartsBarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
   PieChart as RechartsPieChart,
   Pie,
   Cell,
-  BarChart as RechartsBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
   Legend,
-  ResponsiveContainer,
   LineChart as RechartsLineChart,
   Line,
   TooltipProps
 } from 'recharts';
+import { Task, Project, TaskStatus } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface AnalyticsSectionProps {
   tasks: Task[];
@@ -37,130 +47,111 @@ interface StatCardProps {
 }
 
 export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps) {
-  // Calculate task statistics
+  // Calculate statistics
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.status === TaskStatus.DONE).length;
+  const completedTasks = tasks.filter(task => task.status === 'done').length;
   const inProgressTasks = tasks.filter(task => task.status === TaskStatus.IN_PROGRESS).length;
-  const todoTasks = tasks.filter(task => task.status === TaskStatus.TODO).length;
-  const overdueTasks = tasks.filter(task => 
-    new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE
-  ).length;
-  
-  // Completion rate as percentage
+  const overdueTasks = tasks.filter(task => {
+    const dueDate = new Date(task.dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return dueDate < today && task.status !== 'done';
+  }).length;
+
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  
-  const stats: StatCardProps[] = [
+
+  // Prepare data for charts
+  const statusDistributionData = [
+    { name: 'To Do', value: tasks.filter(t => t.status === 'todo').length, color: '#94a3b8' },
+    { name: 'In Progress', value: inProgressTasks, color: '#3b82f6' },
+    { name: 'Done', value: completedTasks, color: '#22c55e' }
+  ].filter(item => item.value > 0);
+
+  const taskPriorityData = [
+    { name: 'Low', value: tasks.filter(t => t.priority === 'low').length, color: '#3b82f6' },
+    { name: 'Medium', value: tasks.filter(t => t.priority === 'medium').length, color: '#f59e0b' },
+    { name: 'High', value: tasks.filter(t => t.priority === 'high').length, color: '#ef4444' },
+    { name: 'Urgent', value: tasks.filter(t => t.priority === 'urgent').length, color: '#a855f7' }
+  ].filter(item => item.value > 0);
+
+  // Generate tasks over time data (last 7 days)
+  const tasksOverTimeData = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - i));
+    const dateStr = date.toISOString().split('T')[0];
+    
+    const created = tasks.filter(task => {
+      const createdDate = new Date(task.createdAt).toISOString().split('T')[0];
+      return createdDate === dateStr;
+    }).length;
+    
+    const completed = tasks.filter(task => {
+      const updatedDate = new Date(task.updatedAt).toISOString().split('T')[0];
+      return updatedDate === dateStr && task.status === 'done';
+    }).length;
+    
+    return {
+      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      created,
+      completed
+    };
+  });
+
+  // Project breakdown data
+  const projectBreakdownData = projects.map(project => ({
+    name: project.name.length > 15 ? project.name.substring(0, 15) + '...' : project.name,
+    value: tasks.filter(task => task.projectId === project.id).length,
+    color: project.color || 'blue-500'
+  })).filter(item => item.value > 0);
+
+  // Add "No Project" category
+  const noProjectTasks = tasks.filter(task => !task.projectId).length;
+  if (noProjectTasks > 0) {
+    projectBreakdownData.push({
+      name: 'No Project',
+      value: noProjectTasks,
+      color: 'gray-500'
+    });
+  }
+
+  const stats = [
     {
       title: 'Total Tasks',
       value: totalTasks,
-      icon: Layers,
+      icon: Target,
       description: 'All tasks in the system',
-      color: 'blue',
-      index: 0
+      color: 'blue'
     },
     {
       title: 'Completed',
       value: completedTasks,
       icon: CheckCircle,
       description: `${completionRate}% completion rate`,
-      color: 'green',
-      index: 1
+      color: 'green'
     },
     {
       title: 'In Progress',
       value: inProgressTasks,
       icon: Clock,
-      description: `${Math.round((inProgressTasks / totalTasks) * 100) || 0}% of total tasks`,
-      color: 'yellow',
-      index: 2
+      description: 'Currently being worked on',
+      color: 'yellow'
     },
     {
       title: 'Overdue',
       value: overdueTasks,
       icon: AlertCircle,
-      description: overdueTasks > 0 ? 'Requires attention' : 'All on schedule',
-      color: 'red',
-      index: 3
+      description: 'Past due date',
+      color: 'red'
     }
   ];
 
-  // Status Distribution data for pie chart
-  const statusDistributionData = useMemo(() => {
-    return [
-      { name: 'To Do', value: todoTasks, color: '#3b82f6' }, // blue-500
-      { name: 'In Progress', value: inProgressTasks, color: '#eab308' }, // yellow-500
-      { name: 'Done', value: completedTasks, color: '#22c55e' }, // green-500
-    ];
-  }, [todoTasks, inProgressTasks, completedTasks]);
-
-  // Task Priority data for bar chart
-  const taskPriorityData = useMemo(() => {
-    const highPriorityTasks = tasks.filter(task => task.priority === 'high').length;
-    const mediumPriorityTasks = tasks.filter(task => task.priority === 'medium').length;
-    const lowPriorityTasks = tasks.filter(task => task.priority === 'low').length;
-    
-    return [
-      { name: 'High', value: highPriorityTasks, color: '#ef4444' }, // red-500
-      { name: 'Medium', value: mediumPriorityTasks, color: '#eab308' }, // yellow-500
-      { name: 'Low', value: lowPriorityTasks, color: '#3b82f6' }, // blue-500
-    ];
-  }, [tasks]);
-
-  // Tasks Over Time data for line chart
-  const tasksOverTimeData = useMemo(() => {
-    // Get date range (last 7 days)
-    const dates: string[] = [];
-    const now = new Date();
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      dates.push(date.toISOString().split('T')[0]);
-    }
-
-    // Count tasks created on each date
-    return dates.map(date => {
-      const tasksCreatedOnDate = tasks.filter(task => {
-        const createdDate = task.createdAt ? new Date(task.createdAt).toISOString().split('T')[0] : '';
-        return createdDate === date;
-      }).length;
-
-      const tasksCompletedOnDate = tasks.filter(task => {
-        const dueDate = new Date(task.dueDate).toISOString().split('T')[0];
-        return dueDate === date && task.status === TaskStatus.DONE;
-      }).length;
-
-      return {
-        date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        created: tasksCreatedOnDate,
-        completed: tasksCompletedOnDate,
-      };
-    });
-  }, [tasks]);
-
-  // Project Breakdown data
-  const projectBreakdownData = useMemo(() => {
-    if (!projects || projects.length === 0) return [];
-
-    return projects.map(project => {
-      const projectTasks = tasks.filter(task => task.projectId === project.id).length;
-      return {
-        name: project.name,
-        value: projectTasks,
-        color: project.color.includes('bg-') 
-          ? project.color.replace('bg-', '') 
-          : project.color
-      };
-    }).filter(project => project.value > 0);
-  }, [tasks, projects]);
-
-  // Custom tooltip for charts
   const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white dark:bg-slate-800 p-3 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg">
-          <p className="font-medium text-slate-900 dark:text-slate-100">{label}</p>
+          <p className="text-slate-900 dark:text-slate-100 font-medium">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
+            <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {entry.value}
             </p>
           ))}
@@ -171,35 +162,30 @@ export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps
   };
 
   return (
-    <section className="space-y-8">
-      {/* Stat Cards */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-          Overview
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {stats.map((stat) => (
-            <StatCard key={stat.title} {...stat} />
-          ))}
-        </div>
+    <section className="mobile-section-spacing">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mobile-gap mb-8">
+        {stats.map((stat, index) => (
+          <StatCard key={stat.title} {...stat} index={index} />
+        ))}
       </div>
-      
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Status Distribution Pie Chart */}
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 mobile-gap">
+        {/* Task Status Distribution Pie Chart */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.5 }}
-          className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm"
+          className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mobile-p shadow-sm"
         >
           <div className="flex items-center gap-2 mb-4">
-            <PieChart className="w-5 h-5 text-blue-500" />
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Status Distribution
+            <BarChart3 className="w-5 h-5 text-blue-500" />
+            <h3 className="mobile-text-lg font-semibold text-slate-900 dark:text-slate-100">
+              Task Status Distribution
             </h3>
           </div>
-          <div className="h-64">
+          <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
                 <Pie
@@ -207,7 +193,7 @@ export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  outerRadius={80}
+                  outerRadius="80%"
                   fill="#8884d8"
                   dataKey="value"
                   label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
@@ -230,15 +216,15 @@ export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm"
+          className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mobile-p shadow-sm"
         >
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-5 h-5 text-blue-500" />
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h3 className="mobile-text-lg font-semibold text-slate-900 dark:text-slate-100">
               Task Priority
             </h3>
           </div>
-          <div className="h-64">
+          <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsBarChart
                 data={taskPriorityData}
@@ -246,8 +232,15 @@ export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps
                 barSize={60}
               >
                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" />
-                <XAxis dataKey="name" className="text-xs text-slate-600 dark:text-slate-400" />
-                <YAxis className="text-xs text-slate-600 dark:text-slate-400" />
+                <XAxis 
+                  dataKey="name" 
+                  className="text-xs text-slate-600 dark:text-slate-400"
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                  className="text-xs text-slate-600 dark:text-slate-400"
+                  tick={{ fontSize: 12 }}
+                />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="value" name="Tasks">
                   {taskPriorityData.map((entry, index) => (
@@ -264,23 +257,30 @@ export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm"
+          className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mobile-p shadow-sm"
         >
           <div className="flex items-center gap-2 mb-4">
             <LineChart className="w-5 h-5 text-blue-500" />
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h3 className="mobile-text-lg font-semibold text-slate-900 dark:text-slate-100">
               Tasks Over Time
             </h3>
           </div>
-          <div className="h-64">
+          <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart
                 data={tasksOverTimeData}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" />
-                <XAxis dataKey="date" className="text-xs text-slate-600 dark:text-slate-400" />
-                <YAxis className="text-xs text-slate-600 dark:text-slate-400" />
+                <XAxis 
+                  dataKey="date" 
+                  className="text-xs text-slate-600 dark:text-slate-400"
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                  className="text-xs text-slate-600 dark:text-slate-400"
+                  tick={{ fontSize: 12 }}
+                />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Line
@@ -311,15 +311,15 @@ export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm"
+          className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mobile-p shadow-sm"
         >
           <div className="flex items-center gap-2 mb-4">
             <FolderKanban className="w-5 h-5 text-blue-500" />
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h3 className="mobile-text-lg font-semibold text-slate-900 dark:text-slate-100">
               Project Breakdown
             </h3>
           </div>
-          <div className="h-64">
+          <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsBarChart
                 data={projectBreakdownData}
@@ -328,12 +328,17 @@ export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps
                 barSize={30}
               >
                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" />
-                <XAxis type="number" className="text-xs text-slate-600 dark:text-slate-400" />
+                <XAxis 
+                  type="number" 
+                  className="text-xs text-slate-600 dark:text-slate-400"
+                  tick={{ fontSize: 12 }}
+                />
                 <YAxis 
                   dataKey="name" 
                   type="category" 
-                  width={100}
-                  className="text-xs text-slate-600 dark:text-slate-400" 
+                  width={80}
+                  className="text-xs text-slate-600 dark:text-slate-400"
+                  tick={{ fontSize: 10 }}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="value" name="Tasks">
@@ -344,6 +349,11 @@ export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps
                     if (entry.color === 'green-500') color = '#22c55e';
                     if (entry.color === 'purple-500') color = '#a855f7';
                     if (entry.color === 'orange-500') color = '#f97316';
+                    if (entry.color === 'red-500') color = '#ef4444';
+                    if (entry.color === 'yellow-500') color = '#f59e0b';
+                    if (entry.color === 'indigo-500') color = '#6366f1';
+                    if (entry.color === 'pink-500') color = '#ec4899';
+                    if (entry.color === 'gray-500') color = '#6b7280';
                     
                     return <Cell key={`cell-${index}`} fill={color} />;
                   })}
@@ -398,59 +408,54 @@ function StatCard({ title, value, icon: Icon, description, color, index }: StatC
       transition={{ 
         duration: 0.5,
         delay: index * 0.1,
-        type: "spring",
-        stiffness: 100,
-        damping: 15
-      }}
-      whileHover={{ 
-        y: -5,
-        transition: { duration: 0.2 }
+        ease: "easeOut"
       }}
       className={cn(
-        'relative overflow-hidden rounded-2xl border p-6',
-        'backdrop-blur-sm backdrop-saturate-150',
-        'transition-all duration-300',
+        'relative overflow-hidden rounded-xl border mobile-p',
+        'bg-gradient-to-br backdrop-blur-sm',
         colors.background,
-        colors.border
-      )}
-    >
-      {/* Background gradient */}
-      <div className={cn(
-        'absolute inset-0 bg-gradient-to-br opacity-50',
+        colors.border,
         colors.gradient
-      )} />
-      
-      {/* Icon */}
-      <div className="relative z-10 flex items-center justify-between mb-4">
-        <div className={cn(
-          'w-12 h-12 rounded-xl flex items-center justify-center',
-          'bg-white/80 dark:bg-slate-800/80 shadow-sm'
-        )}>
-          <Icon className={cn('w-6 h-6', colors.icon)} />
-        </div>
-        
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: index * 0.1 + 0.3, type: "spring" }}
-          className={cn(
-            'text-3xl font-bold',
-            colors.text
-          )}
-        >
-          {value}
-        </motion.div>
-      </div>
-      
-      {/* Content */}
+      )}
+      whileHover={{ 
+        scale: 1.02,
+        transition: { duration: 0.2 }
+      }}
+    >
       <div className="relative z-10">
-        <h3 className={cn('font-semibold text-lg mb-1', colors.text)}>
+        <div className="flex items-center justify-between mb-3">
+          <div className={cn(
+            'p-2 rounded-lg',
+            colors.background
+          )}>
+            <Icon className={cn('w-5 h-5', colors.icon)} />
+          </div>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ 
+              delay: (index * 0.1) + 0.3,
+              type: "spring",
+              stiffness: 200
+            }}
+            className={cn(
+              'text-2xl sm:text-3xl font-bold',
+              colors.text
+            )}
+          >
+            {value}
+          </motion.div>
+        </div>
+        <h3 className={cn('font-semibold mobile-body mb-1', colors.text)}>
           {title}
         </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className={cn('mobile-caption opacity-80', colors.text)}>
           {description}
         </p>
       </div>
+      
+      {/* Decorative background element */}
+      <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-gradient-to-br from-white/20 to-white/5 dark:from-white/10 dark:to-white/5" />
     </motion.div>
   );
 } 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { Calendar, Tag, Clock, GripVertical, ArrowRight, CheckCircle } from 'lucide-react';
 import { Task, TaskStatus } from '@/lib/types';
@@ -48,19 +48,26 @@ const priorityColors = {
   }
 };
 
-// Add new keyframes for spin animation
-const spinKeyframes = {
-  '0%': { transform: 'perspective(1000px) rotateY(0deg)' },
-  '100%': { transform: 'perspective(1000px) rotateY(360deg)' }
-};
-
 export function TaskCard({ task, index }: TaskCardProps) {
   const isOverdue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE;
   const isCompleted = task.status === TaskStatus.DONE;
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
   
-  // Enhanced 3D tilt effect values
+  // Check if we're on mobile/touch device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Enhanced 3D tilt effect values (disabled on mobile)
   const [isHovered, setIsHovered] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const rotateX = useMotionValue(0);
@@ -91,9 +98,9 @@ export function TaskCard({ task, index }: TaskCardProps) {
   const lightTopPosition = useTransform(springLightY, [-0.5, 0.5], ['20%', '80%']);
   const lightLeftPosition = useTransform(springLightX, [-0.5, 0.5], ['20%', '80%']);
   
-  // Enhanced mouse move handler for 3D tilt
+  // Enhanced mouse move handler for 3D tilt (disabled on mobile)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current || isSpinning) return;
+    if (!cardRef.current || isSpinning || isMobile) return;
     
     const rect = cardRef.current.getBoundingClientRect();
     
@@ -112,7 +119,7 @@ export function TaskCard({ task, index }: TaskCardProps) {
   };
   
   const handleMouseLeave = () => {
-    if (isSpinning) return;
+    if (isSpinning || isMobile) return;
     setIsHovered(false);
     rotateX.set(0);
     rotateY.set(0);
@@ -122,24 +129,38 @@ export function TaskCard({ task, index }: TaskCardProps) {
   };
   
   const handleMouseEnter = () => {
-    if (isSpinning) return;
+    if (isSpinning || isMobile) return;
     setIsHovered(true);
   };
   
-  // Enhanced click handler with spin animation
+  // Enhanced click handler with spin animation (simplified for mobile)
   const handleTaskClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isSpinning) return;
     
-    setIsSpinning(true);
-    
-    // Trigger spin animation
-    rotateY.set(360);
-    
-    // Navigate after spin animation
-    setTimeout(() => {
+    if (!isMobile) {
+      setIsSpinning(true);
+      rotateY.set(360);
+      setTimeout(() => {
+        router.push(`/tasks/${task.id}`);
+      }, 400);
+    } else {
+      // Simple navigation for mobile
       router.push(`/tasks/${task.id}`);
-    }, 400);
+    }
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = () => {
+    if (isMobile) {
+      setIsPressed(true);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isMobile) {
+      setIsPressed(false);
+    }
   };
   
   const priorityColor = priorityColors[task.priority as keyof typeof priorityColors] || priorityColors.medium;
@@ -156,32 +177,38 @@ export function TaskCard({ task, index }: TaskCardProps) {
           {...provided.draggableProps}
           initial={false}
           animate={{
-            scale: snapshot.isDragging ? 1.05 : 1,
+            scale: snapshot.isDragging ? 1.05 : isPressed ? 0.98 : 1,
             zIndex: snapshot.isDragging ? 9999 : isHovered ? 10 : 1,
           }}
           style={{
-            rotateX: springRotateX,
-            rotateY: springRotateY,
-            rotateZ: springRotateZ,
-            scale: snapshot.isDragging ? 1.05 : scale,
-            transformPerspective: perspective,
-            transformStyle: "preserve-3d",
+            // Disable 3D transforms on mobile
+            ...(isMobile ? {} : {
+              rotateX: springRotateX,
+              rotateY: springRotateY,
+              rotateZ: springRotateZ,
+              scale: snapshot.isDragging ? 1.05 : scale,
+              transformPerspective: perspective,
+              transformStyle: "preserve-3d",
+            }),
             y: snapshot.isDragging ? -5 : 0,
           }}
           className={cn(
-            'group relative rounded-2xl border p-5 mb-4',
+            'group relative rounded-xl sm:rounded-2xl border mobile-p',
             'backdrop-blur-[20px] backdrop-saturate-[180%]',
             'transition-all duration-300 cursor-pointer',
-            'will-change-transform',
-            // Enhanced glass morphism base styles
-            'before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-tr',
-            'before:from-white/40 before:to-white/10 dark:before:from-white/10 dark:before:to-transparent',
-            'before:pointer-events-none before:-z-10',
-            // Enhanced border styles
-            'after:absolute after:inset-0 after:rounded-2xl after:p-[1px]',
-            'after:bg-gradient-to-tr after:from-white/20 after:to-white/5',
-            'after:dark:from-white/10 after:dark:to-transparent',
-            'after:pointer-events-none',
+            'will-change-transform touch-target',
+            // Simplified styles for mobile
+            isMobile ? 'shadow-md' : 'shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.24)]',
+            // Enhanced glass morphism base styles (simplified on mobile)
+            !isMobile && [
+              'before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-tr',
+              'before:from-white/40 before:to-white/10 dark:before:from-white/10 dark:before:to-transparent',
+              'before:pointer-events-none before:-z-10',
+              'after:absolute after:inset-0 after:rounded-2xl after:p-[1px]',
+              'after:bg-gradient-to-tr after:from-white/20 after:to-white/5',
+              'after:dark:from-white/10 after:dark:to-transparent',
+              'after:pointer-events-none',
+            ],
             // Priority and status-based colors
             isOverdue 
               ? 'border-red-200/40 dark:border-red-800/30 bg-red-50/30 dark:bg-red-900/20' 
@@ -191,17 +218,19 @@ export function TaskCard({ task, index }: TaskCardProps) {
             snapshot.isDragging && 'ring-2 ring-blue-400/30 dark:ring-blue-500/30',
             // Enhanced base background
             'bg-white/40 dark:bg-slate-900/40',
-            // Enhanced shadow effects
-            'shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12)]',
-            'dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.24)]'
+            // Mobile pressed state
+            isMobile && isPressed && 'bg-slate-100/60 dark:bg-slate-800/60'
           )}
           onMouseMove={handleMouseMove}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onClick={handleTaskClick}
-          whileHover={{
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          whileHover={isMobile ? {} : {
             filter: 'brightness(1.1)',
           }}
+          whileTap={isMobile ? { scale: 0.98 } : {}}
           transition={{
             type: "spring",
             stiffness: 400,
@@ -209,45 +238,53 @@ export function TaskCard({ task, index }: TaskCardProps) {
             mass: 0.8
           }}
         >
-          {/* Enhanced glass overlay with noise texture */}
-          <div 
-            className={cn(
-              "absolute inset-0 rounded-2xl pointer-events-none",
-              "bg-[url('data:image/svg+xml,...')] opacity-[0.015]",
-              "mix-blend-overlay"
-            )} 
-          />
-
-          {/* Enhanced light reflection effect */}
-          <motion.div 
-            className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-            style={{ zIndex: 2 }}
-          >
-            <motion.div 
-              className="absolute inset-[-100%] opacity-30 dark:opacity-20 pointer-events-none"
-              style={{
-                background: isOverdue 
-                  ? 'radial-gradient(circle at center, rgba(239, 68, 68, 0.3) 0%, transparent 70%)' 
-                  : isCompleted
-                    ? 'radial-gradient(circle at center, rgba(34, 197, 94, 0.3) 0%, transparent 70%)'
-                    : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.6) 0%, transparent 70%)',
-                top: lightTopPosition,
-                left: lightLeftPosition,
-                width: '140%',
-                height: '140%',
-                filter: 'blur(10px)',
-              }}
+          {/* Enhanced glass overlay (desktop only) */}
+          {!isMobile && (
+            <div 
+              className={cn(
+                "absolute inset-0 rounded-2xl pointer-events-none",
+                "bg-[url('data:image/svg+xml,...')] opacity-[0.015]",
+                "mix-blend-overlay"
+              )} 
             />
-          </motion.div>
+          )}
 
-          {/* Decorative floating circles */}
-          <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-gradient-to-tr from-white/20 to-transparent dark:from-white/5 blur-xl pointer-events-none" />
-          <div className="absolute -bottom-6 -left-6 w-16 h-16 rounded-full bg-gradient-to-tr from-white/20 to-transparent dark:from-white/5 blur-xl pointer-events-none" />
+          {/* Enhanced light reflection effect (desktop only) */}
+          {!isMobile && (
+            <motion.div 
+              className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
+              style={{ zIndex: 2 }}
+            >
+              <motion.div 
+                className="absolute inset-[-100%] opacity-30 dark:opacity-20 pointer-events-none"
+                style={{
+                  background: isOverdue 
+                    ? 'radial-gradient(circle at center, rgba(239, 68, 68, 0.3) 0%, transparent 70%)' 
+                    : isCompleted
+                      ? 'radial-gradient(circle at center, rgba(34, 197, 94, 0.3) 0%, transparent 70%)'
+                      : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.6) 0%, transparent 70%)',
+                  top: lightTopPosition,
+                  left: lightLeftPosition,
+                  width: '140%',
+                  height: '140%',
+                  filter: 'blur(10px)',
+                }}
+              />
+            </motion.div>
+          )}
+
+          {/* Decorative floating circles (desktop only) */}
+          {!isMobile && (
+            <>
+              <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-gradient-to-tr from-white/20 to-transparent dark:from-white/5 blur-xl pointer-events-none" />
+              <div className="absolute -bottom-6 -left-6 w-16 h-16 rounded-full bg-gradient-to-tr from-white/20 to-transparent dark:from-white/5 blur-xl pointer-events-none" />
+            </>
+          )}
 
           {/* Priority Indicator Line */}
           <div 
             className={cn(
-              "absolute top-0 left-0 right-0 h-1 rounded-t-2xl z-10",
+              "absolute top-0 left-0 right-0 h-1 rounded-t-xl sm:rounded-t-2xl z-10",
               isOverdue 
                 ? "bg-red-500 dark:bg-red-400" 
                 : isCompleted
@@ -256,28 +293,43 @@ export function TaskCard({ task, index }: TaskCardProps) {
             )}
           />
 
-          {/* View Details Indicator (only visible on hover) */}
+          {/* View Details Indicator */}
           <motion.div 
-            className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 bg-white/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 text-xs px-3 py-1.5 rounded-full shadow-sm z-10 font-medium backdrop-blur-sm"
+            className={cn(
+              "absolute right-3 sm:right-4 top-3 sm:top-4 z-10",
+              "flex items-center gap-1 text-slate-700 dark:text-slate-200",
+              "mobile-caption font-medium backdrop-blur-sm",
+              isMobile 
+                ? "opacity-60 bg-white/80 dark:bg-slate-800/80 px-2 py-1 rounded-full shadow-sm"
+                : "opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 dark:bg-slate-800/90 px-3 py-1.5 rounded-full shadow-sm"
+            )}
             initial={{ x: -10, opacity: 0 }}
-            animate={{ x: 0, opacity: 0 }}
+            animate={{ x: 0, opacity: isMobile ? 0.6 : 0 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
+            style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(20px)` } : {}}
           >
-            View details <ArrowRight className="w-3.5 h-3.5 ml-0.5 transition-transform group-hover:translate-x-0.5" />
+            {isMobile ? (
+              <ArrowRight className="w-3 h-3" />
+            ) : (
+              <>
+                View details <ArrowRight className="w-3.5 h-3.5 ml-0.5 transition-transform group-hover:translate-x-0.5" />
+              </>
+            )}
           </motion.div>
 
           {/* Drag Handle with Animation */}
-          <div {...provided.dragHandleProps} className="absolute top-0 right-0 pt-4 pr-4 z-10">
+          <div {...provided.dragHandleProps} className="absolute top-0 right-0 pt-3 sm:pt-4 pr-3 sm:pr-4 z-10">
             <motion.div 
               className={cn(
-                'cursor-grab active:cursor-grabbing',
+                'cursor-grab active:cursor-grabbing touch-target',
                 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300',
-                'opacity-0 group-hover:opacity-100 transition-opacity duration-200'
+                isMobile 
+                  ? 'opacity-40' 
+                  : 'opacity-0 group-hover:opacity-100 transition-opacity duration-200'
               )}
-              whileHover={{ 
+              whileHover={isMobile ? {} : { 
                 scale: 1.15,
                 rotate: [0, 5, -5, 0],
                 transition: {
@@ -289,29 +341,29 @@ export function TaskCard({ task, index }: TaskCardProps) {
                 }
               }}
               whileTap={{ scale: 0.9 }}
-              style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
+              style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(20px)` } : {}}
             >
               <GripVertical className="w-4 h-4" />
             </motion.div>
           </div>
 
-          {/* Content Container - with 3D layering */}
+          {/* Content Container */}
           <div 
             className="relative z-10" 
-            style={{ 
+            style={!isMobile ? { 
               transformStyle: "preserve-3d",
               transform: `translateZ(10px)`
-            }}
+            } : {}}
           >
             {/* Status & Priority Section */}
             <div className="flex items-center justify-between mb-3 mt-1">
               {isCompleted ? (
                 <motion.div 
-                  className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-medium"
+                  className="flex items-center gap-1 text-green-600 dark:text-green-400 mobile-caption font-medium"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2 }}
-                  style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
+                  style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(15px)` } : {}}
                 >
                   <CheckCircle className="w-3.5 h-3.5 mr-1" />
                   Completed
@@ -319,12 +371,12 @@ export function TaskCard({ task, index }: TaskCardProps) {
               ) : (
                 <motion.span 
                   className={cn(
-                    'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
+                    'inline-flex items-center px-2.5 py-1 rounded-full mobile-caption font-medium',
                     priorityColor.tag
                   )}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
+                  style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(15px)` } : {}}
                 >
                   {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
                 </motion.span>
@@ -332,11 +384,11 @@ export function TaskCard({ task, index }: TaskCardProps) {
               
               {isOverdue && !isCompleted && (
                 <motion.div 
-                  className="flex items-center text-red-600 dark:text-red-400 text-xs font-medium"
+                  className="flex items-center text-red-600 dark:text-red-400 mobile-caption font-medium"
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2 }}
-                  style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
+                  style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(15px)` } : {}}
                 >
                   <Clock className="w-3.5 h-3.5 mr-1" />
                   Overdue
@@ -347,13 +399,13 @@ export function TaskCard({ task, index }: TaskCardProps) {
             {/* Task Title with Animation */}
             <motion.h3 
               className={cn(
-                "font-semibold mb-2 line-clamp-2 pr-6 text-lg transition-colors duration-200",
+                "font-semibold mb-2 line-clamp-2 pr-12 sm:pr-16 mobile-text-lg transition-colors duration-200",
                 isCompleted 
                   ? "text-slate-600 dark:text-slate-400 line-through opacity-80" 
                   : "text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400"
               )}
               layout
-              style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
+              style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(20px)` } : {}}
             >
               {task.title}
             </motion.h3>
@@ -361,13 +413,13 @@ export function TaskCard({ task, index }: TaskCardProps) {
             {/* Task Description with Animation */}
             <motion.p 
               className={cn(
-                "text-sm mb-4 line-clamp-2",
+                "mobile-body mb-4 line-clamp-2",
                 isCompleted 
                   ? "text-slate-500 dark:text-slate-500 opacity-70" 
                   : "text-slate-600 dark:text-slate-400"
               )}
               layout
-              style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
+              style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(15px)` } : {}}
             >
               {task.description}
             </motion.p>
@@ -377,13 +429,13 @@ export function TaskCard({ task, index }: TaskCardProps) {
               <motion.div 
                 className="flex flex-wrap gap-1.5 mb-4"
                 layout
-                style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
+                style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(15px)` } : {}}
               >
-                {task.tags.map((tag, index) => (
+                {task.tags.slice(0, isMobile ? 2 : 3).map((tag, index) => (
                   <motion.span
                     key={index}
                     className={cn(
-                      "inline-flex items-center px-2 py-1 rounded-md text-xs",
+                      "inline-flex items-center px-2 py-1 rounded-md mobile-caption",
                       isCompleted
                         ? "bg-slate-100/70 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400"
                         : "bg-slate-100/70 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300",
@@ -393,25 +445,35 @@ export function TaskCard({ task, index }: TaskCardProps) {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.05 }}
                     whileHover={{ scale: 1.05 }}
-                    style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
+                    style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(20px)` } : {}}
                   >
                     <Tag className="w-3 h-3 mr-1.5 opacity-70" />
                     {tag}
                   </motion.span>
                 ))}
+                {task.tags.length > (isMobile ? 2 : 3) && (
+                  <motion.span
+                    className="inline-flex items-center px-2 py-1 rounded-md mobile-caption bg-slate-100/70 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.15 }}
+                  >
+                    +{task.tags.length - (isMobile ? 2 : 3)}
+                  </motion.span>
+                )}
               </motion.div>
             )}
 
             {/* Footer with Animation */}
             <motion.div 
-              className="flex items-center justify-between text-sm"
+              className="flex items-center justify-between mobile-body"
               layout
-              style={{ transformStyle: "preserve-3d", transform: `translateZ(15px)` }}
+              style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(15px)` } : {}}
             >
               <motion.div 
                 className={cn(
                   "flex items-center px-2.5 py-1 rounded-md",
-                  "backdrop-blur-sm",
+                  "backdrop-blur-sm touch-target",
                   "bg-white/60 dark:bg-slate-800/60",
                   isCompleted
                     ? "text-slate-500 dark:text-slate-400"
@@ -421,11 +483,11 @@ export function TaskCard({ task, index }: TaskCardProps) {
                 )}
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                style={{ transformStyle: "preserve-3d", transform: `translateZ(20px)` }}
+                style={!isMobile ? { transformStyle: "preserve-3d", transform: `translateZ(20px)` } : {}}
               >
                 <Calendar className="w-3.5 h-3.5 mr-1.5 opacity-80" />
                 <span className={cn(
-                  "font-medium",
+                  "font-medium mobile-caption",
                   isOverdue && !isCompleted && 'text-red-600 dark:text-red-400'
                 )}>
                   {new Date(task.dueDate).toLocaleDateString('en-US', {
@@ -449,17 +511,17 @@ export function TaskCard({ task, index }: TaskCardProps) {
                   stiffness: 500,
                   damping: 20
                 }}
-                className="absolute inset-0 bg-blue-400/5 dark:bg-blue-500/10 rounded-2xl pointer-events-none"
+                className="absolute inset-0 bg-blue-400/5 dark:bg-blue-500/10 rounded-xl sm:rounded-2xl pointer-events-none"
               />
             ) : (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0 }}
                 exit={{ opacity: 0 }}
-                whileHover={{ opacity: 1 }}
+                whileHover={{ opacity: isMobile ? 0 : 1 }}
                 transition={{ duration: 0.2 }}
                 className={cn(
-                  "absolute inset-0 rounded-2xl pointer-events-none",
+                  "absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none",
                   isOverdue 
                     ? "bg-gradient-to-tr from-transparent via-transparent to-red-500/5 dark:to-red-400/10" 
                     : isCompleted
