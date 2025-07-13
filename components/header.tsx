@@ -87,8 +87,8 @@ export function Header({ onMobileMenuToggle, isMobile = false }: HeaderProps) {
         <div className="flex-1 flex justify-center">
           {!isMobile ? (
             <div className="w-full max-w-xl px-4">
-              <TaskSearch 
-                value={localSearchQuery} 
+              <TaskSearch
+                value={localSearchQuery}
                 onChange={handleSearch}
                 placeholder="Search tasks by title or description..."
               />

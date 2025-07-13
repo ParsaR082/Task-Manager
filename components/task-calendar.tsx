@@ -419,7 +419,7 @@ export function TaskCalendar({ tasks, isOpen, onClose }: TaskCalendarProps) {
                 </div>
 
                 {/* Desktop Tasks List */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-6 scrollbar-hidden">
                   <AnimatePresence mode="popLayout">
                     {tasksForSelectedDate.length === 0 ? (
                       <motion.div 

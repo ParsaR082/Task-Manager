@@ -54,13 +54,6 @@ export function Sidebar({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Close mobile sidebar when route changes
-  useEffect(() => {
-    if (isMobile && isMobileOpen && onMobileToggle) {
-      onMobileToggle();
-    }
-  }, [pathname, isMobile, isMobileOpen, onMobileToggle]);
-
   const navigationItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard', active: pathname === '/dashboard' },
     { icon: Calendar, label: 'Calendar', href: '/dashboard/calendar', active: pathname === '/dashboard/calendar' },

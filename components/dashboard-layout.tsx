@@ -58,7 +58,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           onMobileMenuToggle={handleMobileMenuToggle}
           isMobile={isMobile}
         />
-        <main className="flex-1 overflow-y-auto mobile-p">
+        <main className="flex-1 overflow-y-auto mobile-p scrollbar-hidden">
           {children}
         </main>
       </div>

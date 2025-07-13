@@ -86,7 +86,7 @@ export function TaskModal({ isOpen, onClose, onSave, task, projects = [] }: Task
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="mobile-p mobile-section-spacing overflow-y-auto max-h-[calc(90vh-120px)] sm:max-h-none">
+            <form onSubmit={handleSubmit} className="mobile-p mobile-section-spacing overflow-y-auto max-h-[calc(90vh-120px)] sm:max-h-none scrollbar-hidden">
               <div className="mobile-item-spacing">
                 <label
                   htmlFor="title"

@@ -149,7 +149,7 @@ export function TaskColumn({ title, status, tasks, onAddTask, searchQuery = '' }
               }
             }}
             className={cn(
-              'flex-1 p-4 min-h-[200px] relative overflow-y-auto',
+              'flex-1 p-4 min-h-[200px] relative overflow-y-auto scrollbar-hidden',
               'transition-all duration-200',
               statusColors[status].bg,
               snapshot.isDraggingOver && [

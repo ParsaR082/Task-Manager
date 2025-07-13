@@ -90,7 +90,7 @@ export function ProjectModal({ isOpen, onClose, onSave, project }: ProjectModalP
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="mobile-p mobile-section-spacing overflow-y-auto max-h-[calc(85vh-120px)] sm:max-h-none">
+            <form onSubmit={handleSubmit} className="mobile-p mobile-section-spacing overflow-y-auto max-h-[calc(85vh-120px)] sm:max-h-none scrollbar-hidden">
               <div className="mobile-item-spacing">
                 <label
                   htmlFor="name"
