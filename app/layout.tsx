@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/lib/theme-context';
+import { LanguageProvider } from '@/lib/language-context';
 import { Toaster } from 'sonner';
 import { getSession } from '@/lib/auth';
 import { AuthProvider } from '../components/auth-provider';
@@ -28,10 +29,12 @@ export default async function RootLayout({
       </head>
       <body className={inter.className}>
         <AuthProvider session={session}>
-        <ThemeProvider>
-          {children}
-            <Toaster position="top-right" />
-        </ThemeProvider>
+          <LanguageProvider>
+            <ThemeProvider>
+              {children}
+              <Toaster position="top-right" />
+            </ThemeProvider>
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>

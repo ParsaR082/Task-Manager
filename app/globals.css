@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Persian Font Import - Vazirmatn (Beautiful, Modern Persian Font) */
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+/* Alternative Persian Fonts for better coverage */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+
 :root {
   --primary: 79 70 229; /* indigo-600 */
   --primary-foreground: 255 255 255;
@@ -66,6 +73,69 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* RTL Support */
+  [dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+  }
+  
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+  
+  /* Persian Font Support - Beautiful Typography */
+  [lang="fa"] {
+    font-family: 'Vazirmatn', 'Noto Nastaliq Urdu', 'Amiri', 'Inter', system-ui, sans-serif;
+    font-feature-settings: "ss01", "ss02", "ss03", "ss04", "ss05", "ss06", "ss07", "ss08", "ss09", "ss10", "ss11", "ss12", "ss13", "ss14", "ss15", "ss16", "ss17", "ss18", "ss19", "ss20";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  [lang="fa"] * {
+    font-family: inherit;
+  }
+  
+  /* Persian Font Optimizations */
+  [lang="fa"] h1, [lang="fa"] h2, [lang="fa"] h3, [lang="fa"] h4, [lang="fa"] h5, [lang="fa"] h6 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+  
+  [lang="fa"] .font-bold {
+    font-weight: 700;
+  }
+  
+  [lang="fa"] .font-semibold {
+    font-weight: 600;
+  }
+  
+  [lang="fa"] .font-medium {
+    font-weight: 500;
+  }
+  
+  [lang="fa"] .font-light {
+    font-weight: 300;
+  }
+  
+  /* Persian Text Optimizations */
+  [lang="fa"] p, [lang="fa"] span, [lang="fa"] div {
+    line-height: 1.7;
+    text-align: justify;
+  }
+  
+  /* Persian Button and Input Optimizations */
+  [lang="fa"] button, [lang="fa"] input, [lang="fa"] textarea {
+    font-family: 'Vazirmatn', 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+  }
+  
+  /* Persian Navigation Optimizations */
+  [lang="fa"] nav, [lang="fa"] .navigation {
+    font-weight: 500;
+    letter-spacing: -0.01em;
   }
 }
 
