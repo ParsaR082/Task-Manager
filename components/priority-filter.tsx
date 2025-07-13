@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Filter, ChevronDown, Check } from 'lucide-react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PriorityFilterProps {
@@ -11,74 +11,53 @@ interface PriorityFilterProps {
 }
 
 const priorityOptions = [
-  { value: null, label: 'All Priorities', color: 'bg-slate-500 dark:bg-slate-400' },
-  { value: 'low', label: 'Low Priority', color: 'bg-blue-500 dark:bg-blue-400' },
-  { value: 'medium', label: 'Medium Priority', color: 'bg-yellow-500 dark:bg-yellow-400' },
-  { value: 'high', label: 'High Priority', color: 'bg-red-500 dark:bg-red-400' }
+  { label: 'All Priorities', value: null, color: 'bg-slate-400' },
+  { label: 'Low Priority', value: 'low' as const, color: 'bg-blue-500' },
+  { label: 'Medium Priority', value: 'medium' as const, color: 'bg-yellow-500' },
+  { label: 'High Priority', value: 'high' as const, color: 'bg-red-500' },
 ];
 
 export function PriorityFilter({ selectedPriority, onPriorityChange }: PriorityFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
   
-  // Handle outside clicks to close dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-  
-  // Get the selected option details
-  const selectedOption = priorityOptions.find(option => option.value === selectedPriority);
-  
+  const selectedOption = useMemo(() => 
+    priorityOptions.find(option => option.value === selectedPriority) || priorityOptions[0],
+    [selectedPriority]
+  );
+
+  const handleToggle = useCallback(() => {
+    setIsOpen(!isOpen);
+  }, [isOpen]);
+
+  const handleSelect = useCallback((value: 'low' | 'medium' | 'high' | null) => {
+    onPriorityChange(value);
+    setIsOpen(false);
+  }, [onPriorityChange]);
+
   return (
-    <div className="relative" ref={filterRef}>
+    <div className="relative">
       <motion.button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className={cn(
-          "flex items-center gap-2 px-3 py-2.5 rounded-xl transition-colors",
-          "bg-white dark:bg-slate-800 border shadow-sm",
-          isOpen 
-            ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30" 
-            : "border-slate-200 dark:border-slate-700",
-          "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+          "flex items-center gap-2 px-4 py-2 rounded-lg",
+          "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700",
+          "text-slate-700 dark:text-slate-300",
+          "hover:bg-slate-50 dark:hover:bg-slate-700/50",
+          "transition-colors duration-200"
         )}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        aria-label="Filter by priority"
-        title="Filter by priority"
       >
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-          <div className="flex items-center gap-2">
-            {selectedPriority !== null && (
-              <span 
-                className={cn(
-                  "w-2.5 h-2.5 rounded-full",
-                  selectedOption?.color
-                )}
-              />
-            )}
-            <span className="text-sm font-medium">
-              {selectedOption?.label || 'All Priorities'}
-            </span>
-          </div>
-        </div>
+        <span className={cn("w-3 h-3 rounded-full", selectedOption.color)} />
+        <span className="text-sm font-medium">{selectedOption.label}</span>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronDown className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+          <ChevronDown className="w-4 h-4" />
         </motion.div>
       </motion.button>
-      
+
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -97,10 +76,7 @@ export function PriorityFilter({ selectedPriority, onPriorityChange }: PriorityF
               return (
                 <motion.button
                   key={index}
-                  onClick={() => {
-                    onPriorityChange(option.value as 'low' | 'medium' | 'high' | null);
-                    setIsOpen(false);
-                  }}
+                  onClick={() => handleSelect(option.value)}
                   className={cn(
                     "flex items-center justify-between w-full px-4 py-2.5 text-left text-sm",
                     "transition-colors",

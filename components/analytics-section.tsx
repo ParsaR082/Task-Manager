@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -368,45 +368,57 @@ export function AnalyticsSection({ tasks, projects = [] }: AnalyticsSectionProps
 }
 
 function StatCard({ title, value, icon: Icon, description, color, index }: StatCardProps) {
-  const colorVariants = {
-    blue: {
-      background: 'bg-blue-50 dark:bg-blue-900/20',
-      border: 'border-blue-100 dark:border-blue-800/40',
-      text: 'text-blue-700 dark:text-blue-300',
-      icon: 'text-blue-500 dark:text-blue-400',
-      gradient: 'from-blue-500/20 to-blue-600/20 dark:from-blue-500/30 dark:to-blue-600/30'
-    },
-    green: {
-      background: 'bg-green-50 dark:bg-green-900/20',
-      border: 'border-green-100 dark:border-green-800/40',
-      text: 'text-green-700 dark:text-green-300',
-      icon: 'text-green-500 dark:text-green-400',
-      gradient: 'from-green-500/20 to-green-600/20 dark:from-green-500/30 dark:to-green-600/30'
-    },
-    yellow: {
-      background: 'bg-yellow-50 dark:bg-yellow-900/20',
-      border: 'border-yellow-100 dark:border-yellow-800/40',
-      text: 'text-yellow-700 dark:text-yellow-300',
-      icon: 'text-yellow-500 dark:text-yellow-400',
-      gradient: 'from-yellow-500/20 to-yellow-600/20 dark:from-yellow-500/30 dark:to-yellow-600/30'
-    },
-    red: {
-      background: 'bg-red-50 dark:bg-red-900/20',
-      border: 'border-red-100 dark:border-red-800/40',
-      text: 'text-red-700 dark:text-red-300',
-      icon: 'text-red-500 dark:text-red-400',
-      gradient: 'from-red-500/20 to-red-600/20 dark:from-red-500/30 dark:to-red-600/30'
+  const colors = useMemo(() => {
+    switch (color) {
+      case 'blue':
+        return {
+          background: 'bg-blue-50/30 dark:bg-blue-900/20 border-blue-200/40 dark:border-blue-800/30',
+          border: 'border-blue-200/40 dark:border-blue-800/30',
+          text: 'text-blue-700 dark:text-blue-300',
+          icon: 'text-blue-600 dark:text-blue-400',
+          gradient: 'from-blue-500/10 to-blue-600/10 dark:from-blue-400/10 dark:to-blue-500/10'
+        };
+      case 'green':
+        return {
+          background: 'bg-green-50/30 dark:bg-green-900/20 border-green-200/40 dark:border-green-800/30',
+          border: 'border-green-200/40 dark:border-green-800/30',
+          text: 'text-green-700 dark:text-green-300',
+          icon: 'text-green-600 dark:text-green-400',
+          gradient: 'from-green-500/10 to-green-600/10 dark:from-green-400/10 dark:to-green-500/10'
+        };
+      case 'purple':
+        return {
+          background: 'bg-purple-50/30 dark:bg-purple-900/20 border-purple-200/40 dark:border-purple-800/30',
+          border: 'border-purple-200/40 dark:border-purple-800/30',
+          text: 'text-purple-700 dark:text-purple-300',
+          icon: 'text-purple-600 dark:text-purple-400',
+          gradient: 'from-purple-500/10 to-purple-600/10 dark:from-purple-400/10 dark:to-purple-500/10'
+        };
+      case 'orange':
+        return {
+          background: 'bg-orange-50/30 dark:bg-orange-900/20 border-orange-200/40 dark:border-orange-800/30',
+          border: 'border-orange-200/40 dark:border-orange-800/30',
+          text: 'text-orange-700 dark:text-orange-300',
+          icon: 'text-orange-600 dark:text-orange-400',
+          gradient: 'from-orange-500/10 to-orange-600/10 dark:from-orange-400/10 dark:to-orange-500/10'
+        };
+      default:
+        return {
+          background: 'bg-slate-50/30 dark:bg-slate-900/20 border-slate-200/40 dark:border-slate-800/30',
+          border: 'border-slate-200/40 dark:border-slate-800/30',
+          text: 'text-slate-700 dark:text-slate-300',
+          icon: 'text-slate-600 dark:text-slate-400',
+          gradient: 'from-slate-500/10 to-slate-600/10 dark:from-slate-400/10 dark:to-slate-500/10'
+        };
     }
-  };
-  
-  const colors = colorVariants[color as keyof typeof colorVariants];
+  }, [color]);
   
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ 
-        duration: 0.5,
+        duration: 0.4,
         delay: index * 0.1,
         ease: "easeOut"
       }}
@@ -434,7 +446,7 @@ function StatCard({ title, value, icon: Icon, description, color, index }: StatC
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ 
-              delay: (index * 0.1) + 0.3,
+              delay: (index * 0.1) + 0.2,
               type: "spring",
               stiffness: 200
             }}
@@ -454,7 +466,7 @@ function StatCard({ title, value, icon: Icon, description, color, index }: StatC
         </p>
       </div>
       
-      {/* Decorative background element */}
+      {/* Optimized decorative background element */}
       <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-gradient-to-br from-white/20 to-white/5 dark:from-white/10 dark:to-white/5" />
     </motion.div>
   );

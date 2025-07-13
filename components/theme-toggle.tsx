@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useTheme } from '@/lib/theme-context';
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,10 +9,10 @@ import { cn } from '@/lib/utils';
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const nextTheme = theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark';
     setTheme(nextTheme);
-  };
+  }, [theme, setTheme]);
   
   return (
     <motion.button
@@ -29,32 +29,34 @@ export function ThemeToggle() {
       title={`Current theme: ${theme}. Click to switch to ${theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark'} mode`}
     >
       <AnimatePresence mode="wait">
-        {theme === 'dark' ? (
-          <motion.div
-            key="dark"
-            initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
-            animate={{ opacity: 1, rotate: 0, scale: 1 }}
-            exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Moon className="h-5 w-5" />
-          </motion.div>
-        ) : theme === 'light' ? (
+        {theme === 'light' && (
           <motion.div
             key="light"
-            initial={{ opacity: 0, rotate: 90, scale: 0.5 }}
-            animate={{ opacity: 1, rotate: 0, scale: 1 }}
-            exit={{ opacity: 0, rotate: -90, scale: 0.5 }}
+            initial={{ opacity: 0, rotate: -90 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            exit={{ opacity: 0, rotate: 90 }}
             transition={{ duration: 0.2 }}
           >
             <Sun className="h-5 w-5" />
           </motion.div>
-        ) : (
+        )}
+        {theme === 'dark' && (
+          <motion.div
+            key="dark"
+            initial={{ opacity: 0, rotate: -90 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            exit={{ opacity: 0, rotate: 90 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Moon className="h-5 w-5" />
+          </motion.div>
+        )}
+        {theme === 'system' && (
           <motion.div
             key="system"
-            initial={{ opacity: 0, y: -10, scale: 0.5 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.5 }}
+            initial={{ opacity: 0, rotate: -90 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            exit={{ opacity: 0, rotate: 90 }}
             transition={{ duration: 0.2 }}
           >
             <Monitor className="h-5 w-5" />
@@ -62,7 +64,7 @@ export function ThemeToggle() {
         )}
       </AnimatePresence>
       
-      {/* Background glow effect */}
+      {/* Optimized Glow Effect */}
       <AnimatePresence>
         {theme === 'dark' && (
           <motion.div

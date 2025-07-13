@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -44,39 +44,39 @@ export function Sidebar({
   const pathname = usePathname();
 
   // Check if we're on mobile
+  const checkMobile = useCallback(() => {
+    setIsMobile(window.innerWidth < 1024);
+  }, []);
+  
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [checkMobile]);
 
-  const navigationItems = [
+  const navigationItems = useMemo(() => [
     { icon: Home, label: 'Dashboard', href: '/dashboard', active: pathname === '/dashboard' },
     { icon: Calendar, label: 'Calendar', href: '/dashboard/calendar', active: pathname === '/dashboard/calendar' },
     { icon: BarChart3, label: 'Analytics', href: '/dashboard/analytics', active: pathname === '/dashboard/analytics' },
-  ];
+  ], [pathname]);
 
-  const handleToggleCollapse = () => {
+  const handleToggleCollapse = useCallback(() => {
     const newCollapsed = !localCollapsed;
     setLocalCollapsed(newCollapsed);
     if (onCollapsedChange) {
       onCollapsedChange(newCollapsed);
     }
-  };
+  }, [localCollapsed, onCollapsedChange]);
 
-  const handleProjectClick = (projectId: string | undefined) => {
+  const handleProjectClick = useCallback((projectId: string | undefined) => {
     setSelectedProjectId(projectId);
-  };
+  }, [setSelectedProjectId]);
 
-  const handleMobileClose = () => {
+  const handleMobileClose = useCallback(() => {
     if (onMobileToggle) {
       onMobileToggle();
     }
-  };
+  }, [onMobileToggle]);
 
   return (
     <>

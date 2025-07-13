@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface TaskSearchProps {
   value: string;
@@ -18,6 +18,14 @@ export function TaskSearch({
   className,
   placeholder = "Search tasks..." 
 }: TaskSearchProps) {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+  }, [onChange]);
+
+  const handleClear = useCallback(() => {
+    onChange('');
+  }, [onChange]);
+
   return (
     <motion.div 
       className={cn(
@@ -35,7 +43,7 @@ export function TaskSearch({
         <input
           type="text"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={handleChange}
           placeholder={placeholder}
           className={cn(
             "w-full py-2 pl-10 pr-10",
@@ -55,7 +63,7 @@ export function TaskSearch({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.15 }}
-              onClick={() => onChange('')}
+              onClick={handleClear}
               className="absolute right-3 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
             >
               <X className="h-4 w-4" />

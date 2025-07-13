@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Bell } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NotificationBellProps {
@@ -13,6 +13,9 @@ interface NotificationBellProps {
 export function NotificationBell({ count = 0, onClick }: NotificationBellProps) {
   const [isHovering, setIsHovering] = useState(false);
   
+  const handleHoverStart = useCallback(() => setIsHovering(true), []);
+  const handleHoverEnd = useCallback(() => setIsHovering(false), []);
+  
   return (
     <motion.button
       className={cn(
@@ -22,8 +25,8 @@ export function NotificationBell({ count = 0, onClick }: NotificationBellProps) 
         "hover:text-slate-700 dark:hover:text-slate-300"
       )}
       onClick={onClick}
-      onHoverStart={() => setIsHovering(true)}
-      onHoverEnd={() => setIsHovering(false)}
+      onHoverStart={handleHoverStart}
+      onHoverEnd={handleHoverEnd}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       aria-label={`Notifications ${count > 0 ? `(${count} unread)` : ''}`}
@@ -39,6 +42,7 @@ export function NotificationBell({ count = 0, onClick }: NotificationBellProps) 
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className={cn(
               "absolute -top-1 -right-1 flex items-center justify-center",
               "min-w-[18px] h-[18px] rounded-full text-xs font-medium",
@@ -50,31 +54,31 @@ export function NotificationBell({ count = 0, onClick }: NotificationBellProps) 
         )}
       </AnimatePresence>
       
-      {/* Ring Animation */}
+      {/* Optimized Ring Animation */}
       <AnimatePresence>
         {isHovering && count > 0 && (
           <motion.div
             key="ring"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ 
-              scale: [0.8, 1.2, 1.5],
-              opacity: [0.8, 0.5, 0]
+              scale: [0.8, 1.2, 1.4],
+              opacity: [0.6, 0.3, 0]
             }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1, repeat: 0 }}
+            transition={{ duration: 0.8, repeat: 0 }}
             className="absolute inset-0 rounded-full bg-red-500/20 pointer-events-none"
           />
         )}
       </AnimatePresence>
       
-      {/* Shake Animation */}
+      {/* Optimized Shake Animation */}
       {count > 0 && (
         <motion.div
           className="absolute inset-0 pointer-events-none"
           animate={isHovering ? {
-            rotate: [0, -5, 5, -5, 5, 0],
+            rotate: [0, -3, 3, -3, 3, 0],
             transition: { 
-              duration: 0.5,
+              duration: 0.4,
               repeat: 0,
               ease: "easeInOut"
             }
