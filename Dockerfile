@@ -13,6 +13,9 @@ RUN corepack enable
 COPY package*.json ./
 COPY yarn.lock* pnpm-lock.yaml* ./
 
+# Skip Prisma postinstall generate during dependency install
+ENV PRISMA_SKIP_POSTINSTALL_GENERATE=true
+
 # Install dependencies based on the preferred package manager
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
@@ -28,7 +31,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma client if schema exists
-RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
+RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; else echo "No prisma/schema.prisma; skipping generate"; fi
 
 # Build the application
 RUN \

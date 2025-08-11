@@ -1,0 +1,93 @@
+diff --git a/Dockerfile b/Dockerfile
+index 1234567..abcdefg 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -11,6 +11,9 @@ RUN corepack enable
+ # Copy package files
+ COPY package*.json ./
+ COPY yarn.lock* pnpm-lock.yaml* ./
++
++# Skip Prisma postinstall generate during dependency install
++ENV PRISMA_SKIP_POSTINSTALL_GENERATE=true
+ 
+ # Install dependencies based on the preferred package manager
+ RUN \
+@@ -29,7 +32,7 @@ COPY --from=deps /app/node_modules ./node_modules
+ COPY . .
+ 
+ # Generate Prisma client if schema exists
+-RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
++RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; else echo "No prisma/schema.prisma; skipping generate"; fi
+ 
+ # Build the application
+ RUN npm run build
+diff --git a/.dockerignore b/.dockerignore
+index 1234567..abcdefg 100644
+--- a/.dockerignore
++++ b/.dockerignore
+@@ -1,39 +1,6 @@
+-Dockerfile*
+-docker-compose*
+-.dockerignore
+-.git
+-.gitignore
+-README.md
+-.env
+-.env.*
+-!.env.example
+-.next
+-.vscode
+ node_modules
+-npm-debug.log*
+-yarn-debug.log*
+-yarn-error.log*
+-.pnpm-debug.log*
+-
+-# testing
+-/coverage
+-
+-# misc
++.next
++.git
+ .DS_Store
+-*.pem
+-
+-# debug
+-npm-debug.log*
+-yarn-debug.log*
+-yarn-error.log*
+-.pnpm-debug.log*
+-
+-# local env files
+-.env*.local
+-
+-# vercel
+-.vercel
+-
+-# typescript
+-*.tsbuildinfo
+-next-env.d.ts
++npm-debug.log
++yarn-error.log
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 1234567..abcdefg 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -1,5 +1,4 @@
+ # docker-compose.yml
+-version: '3.8'
+ 
+ services:
+   mongo:
+diff --git a/package.json b/package.json
+index 1234567..abcdefg 100644
+--- a/package.json
++++ b/package.json
+@@ -5,7 +5,6 @@
+   "scripts": {
+     "dev": "next dev",
+     "build": "next build",
+-    "postinstall": "prisma generate",
+     "start": "next start",
+     "lint": "next lint",
+     "prisma:generate": "prisma generate",
