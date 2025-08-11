@@ -7,7 +7,6 @@ const config: NextConfig = {
   
   // Trust proxy headers for NextAuth behind reverse proxy
   experimental: {
-    trustHost: true,
     serverActions: {
       allowedOrigins: ['localhost:3000', 'localhost:3001'],
     },
